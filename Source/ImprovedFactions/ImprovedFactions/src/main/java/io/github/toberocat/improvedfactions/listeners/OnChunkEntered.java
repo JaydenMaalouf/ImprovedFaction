@@ -28,14 +28,14 @@ public class OnChunkEntered implements Listener {
 
     @EventHandler
     public void ChunkEnter(OnChunkEnterEvent event) {
+        if (!ImprovedFactionsMain.getPlugin().getConfig().getStringList("general.worlds").contains(event.getChunk().getWorld().getName())) {
+            return;
+        }
+        
         PersistentDataContainer container = event.getChunk().getPersistentDataContainer();
         NamespacedKey key = new NamespacedKey(ImprovedFactionsMain.getPlugin(),
                 "faction-claimed");
         PlayerData playerData = ImprovedFactionsMain.playerData.get(event.getPlayer().getUniqueId());
-
-        if (!ImprovedFactionsMain.getPlugin().getConfig().getStringList("general.worlds").contains(event.getChunk().getWorld().getName())) {
-            return;
-        }
 
         if (UnclaimAutoChunkSubCommand.autoUnclaim.contains(event.getPlayer().getUniqueId()) && playerData.playerFaction != null) {
             Utils.UnClaimChunk(event.getPlayer());
