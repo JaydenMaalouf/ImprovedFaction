@@ -1,11 +1,6 @@
 package io.github.toberocat.improvedfactions.listeners;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
-import io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands.ByPassSubCommand;
-import io.github.toberocat.improvedfactions.data.PlayerData;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
-import io.github.toberocat.improvedfactions.utility.ChunkUtils;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -13,33 +8,47 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 
 public class ArrowHitListener implements Listener {
 
+    private FactionsHandler factionsHandler;
+
+    public ArrowHitListener(FactionsHandler factionsHandler) {
+        this.factionsHandler = factionsHandler;
+    }
+
     public void ArrayHit(ProjectileHitEvent event) {
-        if (ByPassSubCommand.BYPASS.contains(event.getHitEntity().getUniqueId()) ||
-                ByPassSubCommand.BYPASS.contains(event.getHitEntity().getUniqueId())) return;
-            if (event.getEntity() instanceof Arrow) {
-            if (!ImprovedFactionsMain.getPlugin().getConfig().getBoolean("general.allowClaimProtection")) return;
-            if (event.getHitEntity() != null && event.getHitEntity() instanceof Player) {
-                PlayerData playerData = ImprovedFactionsMain.playerData.get(event.getHitEntity().getUniqueId());
-                if (event.getEntity() instanceof Player) {
-                    Player target = (Player) event.getEntity();
-                    PlayerData targetData = ImprovedFactionsMain.playerData.get(target.getUniqueId());
-                    if (targetData.playerFaction == playerData.playerFaction) {
+        var hitEntity = event.getHitEntity();
+        if (hitEntity == null) {
+            return;
+        }
+
+        if (event.getEntity() instanceof Arrow arrow) {
+            if (!factionsHandler.getConfig().getBoolean("general.allowClaimProtection")) {
+                return;
+            }
+
+            if (hitEntity instanceof Player hitPlayer) {
+                var hitPlayerData = factionsHandler.getPlayerData(hitEntity.getUniqueId());
+                if (hitPlayerData != null && hitPlayerData.getBypass()) {
+                    return;
+                }
+
+                if (arrow.getShooter() instanceof Player shootingPlayer) {
+                    var shootingPlayerData = factionsHandler.getPlayerData(shootingPlayer);
+                    if (shootingPlayerData.getPlayerFaction() == hitPlayerData.getPlayerFaction()) {
                         event.setCancelled(true);
                     }
                 } else {
-                    Faction claimFaction = ChunkUtils.GetFactionClaimedChunk(event.getEntity().getLocation().getChunk());
-                        if (claimFaction == null)
-                            return;
+                    var claimedFaction = factionsHandler.getFaction(event.getEntity().getLocation().getChunk());
+                    if (claimedFaction == null)
+                        return;
 
-                        if (FactionUtils.getFaction((Player) event.getHitEntity()) == null) {
-                            event.setCancelled(true);
-                            return;
-                        }
+                    if (factionsHandler.getFaction(hitPlayer) == null) {
+                        event.setCancelled(true);
+                        return;
+                    }
 
-                        if (!claimFaction.getRegistryName()
-                                .equals(playerData.playerFaction.getRegistryName())) {
-                            event.setCancelled(true);
-                        }
+                    if (!claimedFaction.getRegistryName().equals(hitPlayerData.getPlayerFaction().getRegistryName())) {
+                        event.setCancelled(true);
+                    }
                 }
             }
         }

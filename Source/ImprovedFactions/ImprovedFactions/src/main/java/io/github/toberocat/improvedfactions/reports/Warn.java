@@ -17,7 +17,7 @@ public class Warn {
             int value = WARNS.get(faction.getRegistryName());
 
             if (value + 1 >= 5) {
-                faction.DeleteFaction();
+                faction.deleteFaction();
             }
 
             WARNS.replace(faction.getRegistryName(), value + 1);

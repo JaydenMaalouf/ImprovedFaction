@@ -1,13 +1,8 @@
 package io.github.toberocat.improvedfactions.factions.relation;
 
 import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionMember;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
-import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
-import io.github.toberocat.improvedfactions.ranks.OwnerRank;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 
@@ -20,7 +15,7 @@ public class RelationManager {
 
     public RelationManager(Faction faction) {
         this.faction = faction;
-        this.allies =  new ArrayList<>();
+        this.allies = new ArrayList<>();
         this.enemies = new ArrayList<>();
         this.invites = new ArrayList<>();
     }
@@ -28,10 +23,11 @@ public class RelationManager {
     public void sendInvite(Faction faction) {
         invites.add(faction.getRegistryName());
         new Thread(() -> {
-            for (FactionMember member : FactionUtils.getMembersOnline(this.faction)) {
+            for (var member : this.faction.getOnlineMembers()) {
                 if (member.getRank().isAdmin()) {
                     Bukkit.getPlayer(member.getUuid()).sendMessage(Language.getPrefix() +
-                            Language.format("&e" + faction.getDisplayName() + " &f wants to be ally. Use &7/f allyaccept&f to accept, &7/f allycancel&f to deny"));
+                            Language.format("&e" + faction.getDisplayName()
+                                    + " &f wants to be ally. Use &7/f allyaccept&f to accept, &7/f allycancel&f to deny"));
                 }
             }
         }).start();
@@ -40,7 +36,7 @@ public class RelationManager {
     public void removeInvite(Faction faction) {
         invites.remove(faction.getRegistryName());
         new Thread(() -> {
-            for (FactionMember member : FactionUtils.getMembersOnline(this.faction)) {
+            for (var member : this.faction.getOnlineMembers()) {
                 if (member.getRank().isAdmin()) {
                     Bukkit.getPlayer(member.getUuid()).sendMessage(Language.getPrefix() +
                             Language.format("&e" + faction.getDisplayName() + " &frejected your invite to be allies"));
@@ -53,7 +49,7 @@ public class RelationManager {
         allies.remove(faction.getRegistryName());
         enemies.remove(faction.getRegistryName());
         new Thread(() -> {
-            for (Player member : FactionUtils.getPlayersOnline(this.faction)) {
+            for (var member : this.faction.getPlayersOnline()) {
                 member.sendMessage(Language.getPrefix() + Language.format("&e" +
                         faction.getDisplayName() + " &f is now neutral towards your faction"));
             }
@@ -63,7 +59,7 @@ public class RelationManager {
     public void beginWar(Faction faction) {
         enemies.add(faction.getRegistryName());
         new Thread(() -> {
-            for (Player member : FactionUtils.getPlayersOnline(this.faction)) {
+            for (var member : this.faction.getPlayersOnline()) {
                 member.sendMessage(Language.getPrefix() + Language.format("&e" +
                         faction.getDisplayName() + " &f began a war with your faction"));
             }
@@ -73,7 +69,7 @@ public class RelationManager {
     public void makeAllies(Faction faction) {
         allies.add(faction.getRegistryName());
         new Thread(() -> {
-            for (Player member : FactionUtils.getPlayersOnline(this.faction)) {
+            for (var member : this.faction.getPlayersOnline()) {
                 member.sendMessage(Language.getPrefix() + Language.format("&e" +
                         faction.getDisplayName() + " &f is now your ally"));
             }
@@ -92,12 +88,20 @@ public class RelationManager {
         return allies;
     }
 
+    public boolean isAllies(Faction faction){
+        return allies.contains(faction.getRegistryName());
+    }
+
     public void setAllies(ArrayList<String> allies) {
         this.allies = allies;
     }
 
     public ArrayList<String> getEnemies() {
         return enemies;
+    }
+
+    public boolean isEnemies(Faction faction){
+        return enemies.contains(faction.getRegistryName());
     }
 
     public void setEnemies(ArrayList<String> enemies) {
@@ -110,5 +114,20 @@ public class RelationManager {
 
     public void setInvites(ArrayList<String> invites) {
         this.invites = invites;
+    }
+
+    public boolean removeFactionInvite(Faction faction) {
+        return invites.remove(faction.getRegistryName());
+    }
+
+    public boolean hasInvite(Faction faction) {
+        return invites.contains(faction.getRegistryName());
+    }
+
+    public boolean acceptInvite(Faction inviteeFaction) {
+        inviteeFaction.getRelationManager().makeAllies(this.faction);
+        makeAllies(inviteeFaction);
+        invites.remove(inviteeFaction.getRegistryName());
+        return true;
     }
 }

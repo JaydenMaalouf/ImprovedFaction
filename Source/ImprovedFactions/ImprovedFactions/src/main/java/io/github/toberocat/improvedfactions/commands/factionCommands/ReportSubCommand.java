@@ -1,21 +1,21 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
-import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.language.Language;
 import io.github.toberocat.improvedfactions.reports.Report;
+
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ReportSubCommand extends SubCommand {
-    public ReportSubCommand() {
-        super("report", "");
+    public ReportSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "report", "");
     }
 
     @Override
@@ -25,22 +25,23 @@ public class ReportSubCommand extends SubCommand {
             return;
         }
 
-        String reason = Language.format(Arrays.stream(args).skip(1).collect(Collectors.joining(" ")));
-        ImprovedFactionsMain.REPORTS.add(new Report(player.getUniqueId(), reason, args[0]));
+        var reportedPlayer = Bukkit.getPlayer(args[0]);
+        var reason = Language.format(Arrays.stream(args).skip(1).collect(Collectors.joining(" ")));
+        .addReport(new Report(player.getUniqueId(), reason, args[0]));
 
         player.sendMessage(Language.getPrefix() + "Reported " + args[0] + " because of " + reason);
     }
 
     @Override
     protected List<String> CommandTab(Player player, String[] args) {
-        LinkedList<String> str = new LinkedList<>();
+        var results = new ArrayList<String>();
         if (args.length <= 1) {
-            for (Faction faction : Faction.getFACTIONS()) {
-                str.add(faction.getRegistryName());
+            for (var faction : factionsHandler.getFactions()) {
+                results.add(faction.getRegistryName());
             }
         } else {
-            str.add("Reason");
+            results.add("Reason");
         }
-        return str;
+        return results;
     }
 }

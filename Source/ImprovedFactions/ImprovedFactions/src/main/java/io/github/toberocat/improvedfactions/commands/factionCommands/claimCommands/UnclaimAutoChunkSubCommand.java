@@ -1,43 +1,43 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.claimCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class UnclaimAutoChunkSubCommand extends SubCommand {
-
-    public static List<UUID> autoUnclaim = new ArrayList<UUID>();
-
-    public UnclaimAutoChunkSubCommand() {
-        super("auto", "unclaim.auto", LangMessage.AUTO_UNCLAIM_DESCRIPTION);
+    public UnclaimAutoChunkSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "auto", "unclaim.auto", LangMessage.AUTO_UNCLAIM_DESCRIPTION);
     }
 
     @Override
     protected void CommandExecute(Player player, String[] args) {
-        if (FactionUtils.getFaction(player) != null) {
-            if (autoUnclaim.contains(player.getUniqueId())) {
-                disable(player);
-            } else {
-                ClaimAutoChunkSubCommand.disable(player);
-                autoUnclaim.add(player.getUniqueId());
-            }
-            if (autoUnclaim.contains(player.getUniqueId())) {
-                Language.sendMessage(LangMessage.AUTO_UNCLAIM_ENABLED, player);
-            }
-        } else {
+        var faction = factionsHandler.getFaction(player);
+        if (faction == null) {
             CommandExecuteError(CommandExecuteError.NoFaction, player);
+        }
+
+        var playerData = factionsHandler.getPlayerData(player);
+        if (playerData.getAutoUnclaim()){
+            disable(player);
+        }
+        else{            
+            new ClaimAutoChunkSubCommand(factionsHandler).disable(player);
+            playerData.setAutoUnclaim(true);
+            Language.sendMessage(LangMessage.AUTO_UNCLAIM_ENABLED, player);
         }
     }
 
-    public static void disable(Player player) {
-        if (!autoUnclaim.contains(player.getUniqueId())) return;
-        autoUnclaim.remove(player.getUniqueId());
+    public void disable(Player player) {
+        var playerData = factionsHandler.getPlayerData(player);
+        if (!playerData.getAutoUnclaim()) {
+            return;
+        }
+
+        playerData.setAutoUnclaim(false);
         Language.sendMessage(LangMessage.AUTO_UNCLAIM_DISABLED, player);
 
     }

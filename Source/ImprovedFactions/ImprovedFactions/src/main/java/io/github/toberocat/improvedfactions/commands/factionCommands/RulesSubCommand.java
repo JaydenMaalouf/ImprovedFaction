@@ -1,10 +1,8 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands;
 
-import io.github.toberocat.improvedfactions.commands.FactionCommand;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
@@ -12,8 +10,8 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 public class RulesSubCommand extends SubCommand {
-    public RulesSubCommand() {
-        super("rules", LangMessage.RULES_DESCRIPTION);
+    public RulesSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "rules", LangMessage.RULES_DESCRIPTION);
     }
 
     @Override
@@ -25,8 +23,7 @@ public class RulesSubCommand extends SubCommand {
 
     @Override
     protected void CommandExecute(Player player, String[] args) {
-        Faction faction = FactionUtils.getFaction(player);
-
+        var faction = factionsHandler.getFaction(player);
         if (faction.getRules() == null || faction.getRules().length() <= 0) {
             Language.sendMessage(LangMessage.RULES_ARE_EMPTY, player);
         } else {

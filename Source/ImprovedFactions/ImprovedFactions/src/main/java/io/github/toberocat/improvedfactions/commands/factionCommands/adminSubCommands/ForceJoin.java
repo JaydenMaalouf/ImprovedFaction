@@ -1,61 +1,63 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands;
 
-import io.github.toberocat.improvedfactions.commands.factionCommands.JoinPrivateFactionSubCommand;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.Language;
+import io.github.toberocat.improvedfactions.ranks.NewMemberRank;
+import io.github.toberocat.improvedfactions.ranks.Rank;
+
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ForceJoin extends SubCommand {
-    public ForceJoin() {
-        super("forcejoin", "");
+    public ForceJoin(FactionsHandler factionsHandler) {
+        super(factionsHandler, "forcejoin", "");
     }
 
     @Override
     protected void CommandExecute(Player player, String[] args) {
-        if (args.length != 2) return;
+        if (args.length != 2) {
+            return;
+        }
 
-        OfflinePlayer offP = Bukkit.getOfflinePlayer(args[0]);
-        if (offP == null) {
+        var offlinePlayer = Bukkit.getOfflinePlayer(args[0]);
+        if (offlinePlayer == null) {
             CommandExecuteError(CommandExecuteError.PlayerNotFound, player);
             return;
         }
 
-        if (!offP.isOnline()) {
+        if (!offlinePlayer.isOnline()) {
             player.sendMessage(Language.getPrefix() + "§Play is offline. Can't do this with a offline player");
             return;
         }
 
-        Player onP = offP.getPlayer();
+        var onlinePlayer = offlinePlayer.getPlayer();
 
-        Faction faction = FactionUtils.getFaction(onP);
-        if (faction != null) {
-            faction.Leave(onP);
+        var existingFaction = factionsHandler.getFaction(onlinePlayer);
+        if (existingFaction != null) {
+            existingFaction.leave(onlinePlayer);
         }
 
-        JoinPrivateFactionSubCommand.JoinPrivate(onP, args[1]);
+        var newFaction = factionsHandler.getFaction(args[1]);
+        if (newFaction == null){
+            player.sendMessage(Language.getPrefix() + "§Can't find this faction");
+            return;
+        }
+
+        newFaction.join(onlinePlayer, Rank.fromString(NewMemberRank.registry));
     }
 
     @Override
     protected List<String> CommandTab(Player player, String[] args) {
-        LinkedList<String> str = new LinkedList<>();
-
         if (args.length == 2) {
-            for (Faction f : Faction.getFACTIONS()) {
-                str.add(f.getRegistryName());
-            }
+            return factionsHandler.getFactionNames();
         } else {
-            str.addAll(Bukkit.getOnlinePlayers().stream().map(HumanEntity::getName).collect(Collectors.toList()));
+            return Bukkit.getOnlinePlayers().stream().map(HumanEntity::getName).collect(Collectors.toList());
         }
-
-        return str;
     }
 }

@@ -1,43 +1,42 @@
 package io.github.toberocat.improvedfactions.factions.power;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.factions.FactionMember;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.Language;
 import io.github.toberocat.improvedfactions.utility.Debugger;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
-
-import java.util.List;
 
 public class PowerManager {
 
-    private Faction faction;
     private int power;
     private int maxPower;
 
+    private Faction faction;
+    private FactionsHandler factionsHandler;
     private boolean isGeneratingPower;
 
-    public PowerManager(Faction faction) {
+    public PowerManager(Faction faction, FactionsHandler factionsHandler) {
+        this.factionsHandler = factionsHandler;
         this.faction = faction;
-        this.power = ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.startClaimPower");
-        this.maxPower = power;
+
+        power = factionsHandler.getConfig().getInt("factions.startClaimPower");
+        maxPower = power;
         isGeneratingPower = false;
     }
 
     public void addFactionMember() {
-        maxPower += ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.powerPerPlayer");
-        power += ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.powerPerPlayer");
+        maxPower += factionsHandler.getConfig().getInt("factions.powerPerPlayer");
+        power += factionsHandler.getConfig().getInt("factions.powerPerPlayer");
 
-        //ImprovedFactionsMain.getPlugin().getConfig().getInt("faction.powerPerPlayer");
+        // ImprovedFactionsMain.getPlugin().getConfig().getInt("faction.powerPerPlayer");
     }
 
     public void removeFactionMember() {
-        maxPower -= ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.powerPerPlayer");
-        power -= Math.max(ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.minPower"),
-                ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.powerPerPlayer"));
+        maxPower -= factionsHandler.getConfig().getInt("factions.powerPerPlayer");
+        power -= Math.max(factionsHandler.getConfig().getInt("factions.minPower"),
+                factionsHandler.getConfig().getInt("factions.powerPerPlayer"));
     }
 
     public void claimChunk() {
@@ -51,11 +50,12 @@ public class PowerManager {
     }
 
     public void playerDeath() {
-        power -= Math.max(ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.minPower"),
-                ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.powerLossPerDeath"));
+        power -= Math.max(factionsHandler.getConfig().getInt("factions.minPower"),
+                factionsHandler.getConfig().getInt("factions.powerLossPerDeath"));
 
         for (FactionMember member : faction.getMembers()) {
-            if (member == null) continue;
+            if (member == null)
+                continue;
             OfflinePlayer off = Bukkit.getOfflinePlayer(member.getUuid());
 
             if (off.isOnline()) {
@@ -72,14 +72,19 @@ public class PowerManager {
     }
 
     public void startRegenerationThread() {
-        if (isGeneratingPower) return;
-        if (power == maxPower) return;
+        if (isGeneratingPower) {
+            return;
+        }
+        if (power == maxPower) {
+            return;
+        }
+        
         new Thread(() -> {
             isGeneratingPower = true;
             Debugger.LogInfo("Started generation of power");
             while (power < maxPower) {
                 try {
-                    Thread.sleep(ImprovedFactionsMain.getPlugin().getConfig()
+                    Thread.sleep(factionsHandler.getConfig()
                             .getInt("factions.regenerationRate"));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -93,14 +98,13 @@ public class PowerManager {
     }
 
     private void regenerate() {
-        List<Player> members = FactionUtils.getPlayersOnline(faction);
-        power += members.size() *
-                ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.regenerationPerRate");
+        var members = faction.getPlayersOnline();
+        power += members.size() * factionsHandler.getConfig().getInt("factions.regenerationPerRate");
 
         if (power >= maxPower) {
             power = maxPower;
         }
-        for (Player player : members) {
+        for (var player : members) {
             player.sendMessage(Language.getPrefix() + Language.format(
                     "&eSome power regenerated. Current power: &b" + power + " / " + maxPower));
         }

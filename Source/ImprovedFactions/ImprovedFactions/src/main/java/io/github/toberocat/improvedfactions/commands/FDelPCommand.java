@@ -1,22 +1,20 @@
 package io.github.toberocat.improvedfactions.commands;
 
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionMember;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
-import io.github.toberocat.improvedfactions.gui.FlagUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class FDelPCommand implements TabExecutor {
+    private FactionsHandler factionsHandler;
+    public FDelPCommand(FactionsHandler factionsHandler){
+        this.factionsHandler = factionsHandler;
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
         if (args.length == 0) {
@@ -24,14 +22,13 @@ public class FDelPCommand implements TabExecutor {
             return false;
         }
 
-        Faction faction = FactionUtils.getFaction(Bukkit.getOfflinePlayer(args[0]).getUniqueId());
-
+        var faction = factionsHandler.getFaction(args[0]);
         if (faction == null) {
             commandSender.sendMessage("Faction does not exist");
             return false;
         }
 
-        faction.DeleteFaction();
+        faction.deleteFaction();
         commandSender.sendMessage("Successfully deleted the faction");
         return true;
     }
@@ -39,11 +36,10 @@ public class FDelPCommand implements TabExecutor {
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
-        List<String> arguments = new ArrayList<>();
-        if (args.length != 1) return arguments;
-        for (OfflinePlayer player : Bukkit.getOfflinePlayers()) {
-            arguments.add(player.getName());
+        if (args.length != 1) {
+            return null;
         }
-        return arguments;
+
+        return factionsHandler.getFactionNames();
     }
 }

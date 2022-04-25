@@ -47,6 +47,10 @@ public abstract class Rank {
         return isAdmin;
     }
 
+    public boolean isOwner() {
+        return registryName == OwnerRank.registry;
+    }
+
     public String getDisplayName() {
         return displayName;
     }

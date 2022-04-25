@@ -1,6 +1,9 @@
 package io.github.toberocat.improvedfactions.event.faction;
 
 import io.github.toberocat.improvedfactions.factions.Faction;
+
+import java.util.UUID;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -13,12 +16,17 @@ public class FactionJoinEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
 
     private Faction faction;
-    private Player player;
     private String cancelMessage = "";
 
+    private UUID playerId;
     public FactionJoinEvent(Faction faction, Player player) {
         this.faction = faction;
-        this.player = player;
+        playerId = player.getUniqueId();
+    }
+
+    public FactionJoinEvent(Faction faction, UUID uuid) {
+        this.faction = faction;
+        playerId = uuid;
     }
 
     @Override
@@ -47,11 +55,16 @@ public class FactionJoinEvent extends Event implements Cancellable {
         this.faction = faction;
     }
 
-    public Player getPlayer() {
-        return player;
+    public UUID getPlayer() {
+        return playerId;
     }
+
     public void setPlayer(Player player) {
-        this.player = player;
+        setPlayer(player.getUniqueId());
+    }
+
+    public void setPlayer(UUID uuid) {
+        playerId = uuid;
     }
 
     public String getCancelMessage() {

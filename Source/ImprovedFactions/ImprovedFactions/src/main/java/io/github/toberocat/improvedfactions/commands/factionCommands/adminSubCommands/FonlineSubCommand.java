@@ -1,19 +1,16 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.Language;
-import io.github.toberocat.improvedfactions.reports.Report;
 import org.bukkit.entity.Player;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class FonlineSubCommand extends SubCommand {
-    public FonlineSubCommand() {
-        super("fonline", "");
+    public FonlineSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "fonline", "");
     }
 
     @Override
@@ -23,26 +20,22 @@ public class FonlineSubCommand extends SubCommand {
             return;
         }
 
-        Faction f = FactionUtils.getFactionByRegistry(args[0]);
-        if (f == null) {
-            player.sendMessage(Language.getPrefix() + "§cCouldn't find faction to delete");
+        var faction = factionsHandler.getFaction(args[0]);
+        if (faction == null) {
+            player.sendMessage(Language.getPrefix() + "§cCouldn't find faction");
             return;
         }
 
-        int o = FactionUtils.getPlayersOnline(f).size();
-        player.sendMessage(Language.getPrefix() + o + (o == 1 ? " person " : " people ") +
-                (o == 1 ? "is" : "are") + " online in §e" + f.getDisplayName());
-
+        var onlineCount = faction.getPlayersOnline().size();
+        player.sendMessage(Language.getPrefix() + onlineCount + (onlineCount == 1 ? " person " : " people ") +
+                (onlineCount == 1 ? "is" : "are") + " online in §e" + faction.getDisplayName());
     }
 
     @Override
     protected List<String> CommandTab(Player player, String[] args) {
-        LinkedList<String> str = new LinkedList<>();
-
-        for (Faction f : Faction.getFACTIONS()) {
-            str.add(f.getRegistryName());
+        if (args.length == 1) {
+            return factionsHandler.getFactionNames();
         }
-
-        return str;
+        return null;
     }
 }

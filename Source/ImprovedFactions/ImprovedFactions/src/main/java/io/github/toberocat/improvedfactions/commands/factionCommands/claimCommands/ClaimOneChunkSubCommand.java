@@ -1,17 +1,18 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.claimCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
 import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.language.LangMessage;
-import io.github.toberocat.improvedfactions.utility.Utils;
+
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
 public class ClaimOneChunkSubCommand extends SubCommand {
-    public ClaimOneChunkSubCommand() {
-        super("one", "claim.one", LangMessage.CLAIM_ONE_DESCRIPTION);
+    public ClaimOneChunkSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "one", "claim.one", LangMessage.CLAIM_ONE_DESCRIPTION);
     }
 
     @Override
@@ -25,7 +26,12 @@ public class ClaimOneChunkSubCommand extends SubCommand {
 
     @Override
     protected void CommandExecute(Player player, String[] args) {
-        Utils.ClaimChunk(player);
+        var faction = factionsHandler.getFaction(player);
+        if (faction == null) {
+            return;
+        }
+
+        faction.claimChunk(player.getLocation().getChunk(), null);
     }
 
     @Override

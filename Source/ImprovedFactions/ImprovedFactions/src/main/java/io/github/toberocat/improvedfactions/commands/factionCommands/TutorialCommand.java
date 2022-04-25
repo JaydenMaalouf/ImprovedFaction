@@ -1,5 +1,6 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
@@ -8,8 +9,8 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 public class TutorialCommand extends SubCommand {
-    public TutorialCommand() {
-        super("tutorial", "");
+    public TutorialCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "tutorial", "");
     }
 
     @Override

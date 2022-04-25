@@ -1,18 +1,17 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.relations;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class AllyDenySubCommand extends SubCommand {
-    public AllyDenySubCommand() {
-        super("allycancel", "");
+public class AllyRejectSubCommand extends SubCommand {
+    public AllyRejectSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "allycancel", "");
     }
 
     @Override
@@ -27,25 +26,32 @@ public class AllyDenySubCommand extends SubCommand {
             return;
         }
 
-        Faction requestedFaction = FactionUtils.getFactionByRegistry(args[0]);
-
+        var requestedFaction = factionsHandler.getFaction(args[0]);
         if (requestedFaction == null) {
             Language.sendMessage(LangMessage.JOIN_ERROR_NO_FACTION_FOUND, player);
             return;
         }
 
-        Faction faction = FactionUtils.getFaction(player);
-        if (!faction.getRelationManager().getInvites().contains(requestedFaction.getRegistryName())) {
+        var playerFaction = factionsHandler.getFaction(player);
+        if (!playerFaction.getRelationManager().hasInvite(requestedFaction)) {
             player.sendMessage(Language.getPrefix() + Language.format("&fYou have no invites from this faction"));
             return;
         }
 
-        faction.getRelationManager().removeInvite(requestedFaction);
+        playerFaction.getRelationManager().removeInvite(requestedFaction);
     }
 
     @Override
     protected List<String> CommandTab(Player player, String[] args) {
-        Faction faction = FactionUtils.getFaction(player);
+        if (args.length != 0){
+            return null;
+        }
+
+        var faction = factionsHandler.getFaction(player);
+        if (faction == null) {
+            return null;
+        }
+
         return faction.getRelationManager().getInvites();
     }
 }

@@ -1,32 +1,70 @@
 package io.github.toberocat.improvedfactions.data;
 
 import io.github.toberocat.improvedfactions.factions.Faction;
-import org.bukkit.Chunk;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerData {
-
-    public Display display;
-    public ChunkData chunkData;
-
-    public Faction playerFaction;
-    public List<String> invitations;
+    private Faction playerFaction;
+    private boolean autoClaim;
+    private boolean autoUnclaim;
+    private boolean bypass;
+    private List<String> invitations;
 
     public PlayerData() {
-        display = new Display();
-        chunkData = new ChunkData();
+        autoClaim = false;
+        autoUnclaim = false;
         invitations = new ArrayList<>();
     }
 
-    public class Display {
-        public boolean alreadyDisplayedRegion = false;
+    public boolean getAutoClaim() {
+        return autoClaim;
     }
 
-    public class ChunkData {
-        public boolean isInClaimedChunk = false;
-        public String factionRegistry = "";
+    public void setAutoClaim(boolean autoClaim) {
+        this.autoClaim = autoClaim;
+        if (autoClaim){
+            autoUnclaim = false;
+        }
+    }
+
+    public boolean getAutoUnclaim() {
+        return autoUnclaim;
+    }
+
+    public void setAutoUnclaim(boolean autoUnclaim) {
+        this.autoUnclaim = autoUnclaim;
+        if (autoUnclaim){
+            autoClaim = false;
+        }
+    }
+
+    public Faction getPlayerFaction() {
+        return playerFaction;
+    }
+
+    public List<String> getInvitations() {
+        return invitations;
+    }
+
+    public void setPlayerFaction(Faction faction) {
+        playerFaction = faction;
+        if (faction == null){
+            setAutoClaim(false);
+            setAutoUnclaim(false);
+        }
+    }
+
+    public void addInvitation(String invitation) {
+        invitations.add(invitation);
+    }
+
+    public boolean getBypass() {
+        return bypass;
+    }
+
+    public void setBypass(boolean bypass) {
+        this.bypass = bypass;
     }
 }
-

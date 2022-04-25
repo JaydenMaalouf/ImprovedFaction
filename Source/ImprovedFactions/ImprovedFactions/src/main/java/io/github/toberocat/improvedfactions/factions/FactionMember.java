@@ -2,7 +2,6 @@ package io.github.toberocat.improvedfactions.factions;
 
 import io.github.toberocat.improvedfactions.ranks.Rank;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 public class FactionMember {

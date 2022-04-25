@@ -1,9 +1,8 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.relations;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
@@ -12,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WarSubCommand extends SubCommand {
-    public WarSubCommand() {
-        super("war", "");
+    public WarSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "war", "");
     }
 
     @Override
@@ -27,38 +26,46 @@ public class WarSubCommand extends SubCommand {
             CommandExecuteError(CommandExecuteError.NotEnoughArgs, player);
             return;
         }
-        Faction requestedFaction = FactionUtils.getFactionByRegistry(args[0]);
 
+        var requestedFaction = factionsHandler.getFaction(args[0]);
         if (requestedFaction == null) {
             Language.sendMessage(LangMessage.JOIN_ERROR_NO_FACTION_FOUND, player);
             return;
         }
 
-        Faction faction = FactionUtils.getFaction(player);
-
-        if (faction.getRegistryName().equals(requestedFaction.getRegistryName())) {
-            player.sendMessage(Language.getPrefix() + Language.format("&fCannot be allied with yourself"));
+        var playerFaction = factionsHandler.getFaction(player);
+        if (playerFaction.getRegistryName().equals(requestedFaction.getRegistryName())) {
+            player.sendMessage(Language.getPrefix() + Language.format("&fCannot be at war with yourself"));
             return;
-
         }
 
-        if (requestedFaction.getRelationManager().getEnemies().contains(faction.getRegistryName())) {
+        if (requestedFaction.getRelationManager().isEnemies(playerFaction)) {
             player.sendMessage(Language.getPrefix() + Language.format("&fYou are already in war"));
             return;
         }
 
-        requestedFaction.getRelationManager().beginWar(faction);
-        faction.getRelationManager().beginWar(requestedFaction);
+        requestedFaction.getRelationManager().beginWar(playerFaction);
+        playerFaction.getRelationManager().beginWar(requestedFaction);
     }
 
     @Override
     protected List<String> CommandTab(Player player, String[] args) {
-        ArrayList<String> registryList = new ArrayList<>();
+        var playerFaction = factionsHandler.getFaction(player);
+        if (playerFaction == null) {
+            return null;
+        }
 
-        for (Faction faction : Faction.getFACTIONS()) {
+        var registryList = new ArrayList<String>();
+        for (var faction : factionsHandler.getFactions()) {
+            if (faction.getRegistryName().equals(playerFaction.getRegistryName())) {
+                continue;
+            }
+            if (playerFaction.getRelationManager().isAllies(faction)) {
+                continue;
+            }
+
             registryList.add(faction.getRegistryName());
         }
-        registryList.removeAll(FactionUtils.getFaction(player).getRelationManager().getAllies());
         return registryList;
     }
 }

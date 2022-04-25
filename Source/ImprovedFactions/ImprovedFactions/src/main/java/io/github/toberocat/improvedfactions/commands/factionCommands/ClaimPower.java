@@ -1,17 +1,16 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
 public class ClaimPower extends SubCommand {
-    public ClaimPower() {
-        super("claimpower", "");
+    public ClaimPower(FactionsHandler factionsHandler) {
+        super(factionsHandler, "claimpower", "");
     }
 
     @Override
@@ -21,9 +20,8 @@ public class ClaimPower extends SubCommand {
 
     @Override
     protected void CommandExecute(Player player, String[] args) {
-        Faction f = FactionUtils.getFaction(player);
-
-        player.sendMessage(Language.getPrefix()+"§eLeft claimpower: §b" + (f.getPowerManager().getPower() - f.getClaimedChunks()));
+        var faction = factionsHandler.getFaction(player);
+        player.sendMessage(Language.getPrefix()+"§eLeft claimpower: §b" + (faction.getPowerManager().getPower() - faction.getClaimedChunks()));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.language.Language;
@@ -14,8 +15,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class RemoveReport extends SubCommand {
-    public RemoveReport() {
-        super("removeReport", "");
+    public RemoveReport(FactionsHandler factionsHandler) {
+        super(factionsHandler, "removeReport", "");
     }
 
     @Override

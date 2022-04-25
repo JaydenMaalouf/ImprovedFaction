@@ -18,7 +18,6 @@ public class Language {
 
     private static Map<String, LangMessage> langFiles;
 
-
     public static void init(ImprovedFactionsMain plugin, File langDir) {
         langFiles = new HashMap<>();
 
@@ -30,7 +29,8 @@ public class Language {
                     LangMessage langMessage = mapper.readValue(file, LangMessage.class);
                     langFiles.put(split[0], langMessage);
                 } catch (IOException e) {
-                    plugin.getServer().getConsoleSender().sendMessage("§7[Factions] §cIgnoring " + file.getName() + ". " + e.getMessage());
+                    plugin.getServer().getConsoleSender()
+                            .sendMessage("§7[Factions] §cIgnoring " + file.getName() + ". " + e.getMessage());
                 }
             }
         }
@@ -54,7 +54,7 @@ public class Language {
         if (langFiles.containsKey(locale)) {
             LangMessage langMessage = langFiles.get(locale);
 
-           return getPrefix() + format(langMessage.getMessages().get(msgKey));
+            return getPrefix() + format(langMessage.getMessages().get(msgKey));
         } else {
             LangMessage langMessage = langFiles.get("en_us");
 
@@ -67,7 +67,8 @@ public class Language {
         LangMessage langMessage = null;
 
         if (langFiles == null) {
-            player.sendMessage("Error: lang files didn't get initialised. Report it to the ImprovedFactions dev or the server owner");
+            player.sendMessage(
+                    "Error: lang files didn't get initialised. Report it to the ImprovedFactions dev or the server owner");
             return;
         }
 
@@ -83,7 +84,8 @@ public class Language {
     }
 
     public static String parse(String message, Parseable[] parseables) {
-        if (parseables == null) return message;
+        if (parseables == null)
+            return message;
 
         for (Parseable parseable : parseables) {
             if (parseable != null) {
@@ -95,11 +97,12 @@ public class Language {
 
     public static String getPrefix() {
         return format(ImprovedFactionsMain.getPlugin()
-                        .getLanguageData().getConfig().getString("prefix") + " §f");
+                .getLanguageData().getConfig().getString("prefix") + " §f");
     }
 
     public static String format(String msg) {
-        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17") || Bukkit.getVersion().contains("1.18")) {
+        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17")
+                || Bukkit.getVersion().contains("1.18")) {
             Matcher matcher = pattern.matcher(msg);
             while (matcher.find()) {
                 String color = msg.substring(matcher.start(), matcher.end());
@@ -110,7 +113,7 @@ public class Language {
         return ChatColor.translateAlternateColorCodes('&', msg);
     }
 
-    public static String escape(String s){
+    public static String escape(String s) {
         return s.replace("\\", "\\\\")
                 .replace("\t", "\\t")
                 .replace("\b", "\\b")

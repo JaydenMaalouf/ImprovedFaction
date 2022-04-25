@@ -1,5 +1,6 @@
 package io.github.toberocat.improvedfactions.listeners;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
 import io.github.toberocat.improvedfactions.commands.factionCommands.MapSubCommand;
 import io.github.toberocat.improvedfactions.commands.factionCommands.claimCommands.ClaimAutoChunkSubCommand;
@@ -18,44 +19,56 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Objects;
 
 public class OnChunkEntered implements Listener {
+    private FactionsHandler _factionsHandler;
+    public OnChunkEntered(FactionsHandler factionsHandler){
+        _factionsHandler = factionsHandler;
+    }
 
 
     @EventHandler
     public void ChunkEnter(OnChunkEnterEvent event) {
-        if (!ImprovedFactionsMain.getPlugin().getConfig().getStringList("general.worlds").contains(event.getChunk().getWorld().getName())) {
+        var currentChunk = event.getChunk();
+        if (currentChunk == null){
             return;
         }
-        
-        PersistentDataContainer container = event.getChunk().getPersistentDataContainer();
-        NamespacedKey key = new NamespacedKey(ImprovedFactionsMain.getPlugin(),
-                "faction-claimed");
-        PlayerData playerData = ImprovedFactionsMain.playerData.get(event.getPlayer().getUniqueId());
 
-        if (UnclaimAutoChunkSubCommand.autoUnclaim.contains(event.getPlayer().getUniqueId()) && playerData.playerFaction != null) {
-            Utils.UnClaimChunk(event.getPlayer());
+        var worldName = currentChunk.getWorld().getName();
+        if (!_factionsHandler.getWorlds().contains(worldName)) {
+            return;
         }
 
-        if (ClaimAutoChunkSubCommand.autoClaim.contains(event.getPlayer().getUniqueId()) && playerData.playerFaction != null) {
-            Utils.ClaimChunk(event.getPlayer());
+        var player = event.getPlayer();
+        if (player == null){
+            return;
         }
 
-        if (MapSubCommand.AUTO_MAPS.contains(event.getPlayer().getUniqueId())) {
-            sendMap(event.getPlayer());
+        var playerData = _factionsHandler.getPlayerData(player.getUniqueId());
+        if (UnclaimAutoChunkSubCommand.autoUnclaim.contains(player.getUniqueId()) && playerData.playerFaction != null) {
+            Utils.UnClaimChunk(player);
+        }
+
+        if (ClaimAutoChunkSubCommand.autoClaim.contains(player.getUniqueId()) && playerData.playerFaction != null) {
+            Utils.ClaimChunk(player);
+        }
+
+        if (MapSubCommand.AUTO_MAPS.contains(player.getUniqueId())) {
+            sendMap(player);
         }
 
         boolean oldClaimedchunk = playerData.chunkData.isInClaimedChunk;
         String oldFactionName = playerData.chunkData.factionRegistry;
         //Check if is in wildness
 
-        playerData.chunkData.isInClaimedChunk = container.has(key, PersistentDataType.STRING);
-        playerData.chunkData.factionRegistry = container.has(key, PersistentDataType.STRING) ?
-                container.get(key, PersistentDataType.STRING) : playerData.chunkData.factionRegistry;
+        var key = _factionsHandler.createNamespacedKey("faction-claimed");
+        var chunkContainer = event.getChunk().getPersistentDataContainer();
+        playerData.chunkData.isInClaimedChunk = chunkContainer.has(key, PersistentDataType.STRING);
+        playerData.chunkData.factionRegistry = chunkContainer.has(key, PersistentDataType.STRING) ?
+                chunkContainer.get(key, PersistentDataType.STRING) : playerData.chunkData.factionRegistry;
         if (playerData.chunkData.isInClaimedChunk != oldClaimedchunk) {
             playerData.display.alreadyDisplayedRegion = false;
         }
@@ -64,34 +77,34 @@ public class OnChunkEntered implements Listener {
         }
         if (!playerData.chunkData.isInClaimedChunk) {
             if (!playerData.display.alreadyDisplayedRegion) {
-                if  (Objects.equals(ImprovedFactionsMain.getPlugin().getConfig().getString("general.messageType"), "TITLE")) {
-                    event.getPlayer().sendTitle(Language.format(ImprovedFactionsMain.getPlugin().getConfig().getString("general.wildnessText")), "", 10, 20, 10);
-                } else if (Objects.equals(ImprovedFactionsMain.getPlugin().getConfig().getString("general.messageType"), "ACTIONBAR")) {
-                    event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ImprovedFactionsMain.getPlugin().getConfig().getString("general.wildnessText")));
+                if  (Objects.equals(_factionsHandler.getConfig().getString("general.messageType"), "TITLE")) {
+                    event.getPlayer().sendTitle(Language.format(_factionsHandler.getConfig().getString("general.wildnessText")), "", 10, 20, 10);
+                } else if (Objects.equals(_factionsHandler.getConfig().getString("general.messageType"), "ACTIONBAR")) {
+                    event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(_factionsHandler.getConfig().getString("general.wildnessText")));
                 } else {
-                    event.getPlayer().sendMessage("Couldn't find the type " + ImprovedFactionsMain.getPlugin().getConfig().getString("general.messageType") + "\n"
+                    event.getPlayer().sendMessage("Couldn't find the type " + _factionsHandler.getConfig().getString("general.messageType") + "\n"
                             + "Valid types = { TITLE, ACTIONBAR }");
                 }
                 playerData.display.alreadyDisplayedRegion = true;
             }
         }else {
             if (!playerData.display.alreadyDisplayedRegion) {
-                String factionRegistry = container.get(key, PersistentDataType.STRING);
-                Faction faction = FactionUtils.getFactionByRegistry(factionRegistry);
+                String factionRegistry = chunkContainer.get(key, PersistentDataType.STRING);
+                Faction faction = FactionUtils.getFaction(factionRegistry);
 
                     if (faction == null) {
-                        container.remove(ChunkUtils.FACTION_CLAIMED_KEY);
+                        chunkContainer.remove(ChunkUtils.FACTION_CLAIMED_KEY);
                         return;
                     }
 
-                    if  (Objects.equals(ImprovedFactionsMain.getPlugin().getConfig().getString("general.messageType"), "TITLE")) {
+                    if  (Objects.equals(_factionsHandler.getConfig().getString("general.messageType"), "TITLE")) {
                         event.getPlayer().sendTitle((faction == FactionUtils.getFaction(event.getPlayer()) ? "§a" : "§c")
                                 + faction.getDisplayName(), "§f"+(faction.getMotd() == null ? "" : faction.getMotd()), 10, 20, 10);
-                    } else if (Objects.equals(ImprovedFactionsMain.getPlugin().getConfig().getString("general.messageType"), "ACTIONBAR")) {
+                    } else if (Objects.equals(_factionsHandler.getConfig().getString("general.messageType"), "ACTIONBAR")) {
                         event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText((faction == FactionUtils.getFaction(event.getPlayer()) ? "§a" : "§c")
                                 + faction.getDisplayName()));
                     } else {
-                        event.getPlayer().sendMessage("Couldn't find the type " + ImprovedFactionsMain.getPlugin().getConfig().getString("general.messageType") + "\n"
+                        event.getPlayer().sendMessage("Couldn't find the type " + _factionsHandler.getConfig().getString("general.messageType") + "\n"
                                 + "Valid types = { TITLE, ACTIONBAR }");
                     }
                     playerData.display.alreadyDisplayedRegion = true;
@@ -99,10 +112,10 @@ public class OnChunkEntered implements Listener {
         }
     }
 
-    public static void sendMap(Player player) {
+    public void sendMap(Player player) {
         Chunk center = player.getLocation().getChunk();
-        int dstH = ImprovedFactionsMain.getPlugin().getConfig().getInt("general.mapViewDistanceW");
-        int dstW = ImprovedFactionsMain.getPlugin().getConfig().getInt("general.mapViewDistanceH");
+        int dstH = _factionsHandler.getConfig().getInt("general.mapViewDistanceW");
+        int dstW = _factionsHandler.getConfig().getInt("general.mapViewDistanceH");
 
         int leftTopX = center.getX() - dstW/2;
         int leftTopZ = center.getZ() - dstH/2;

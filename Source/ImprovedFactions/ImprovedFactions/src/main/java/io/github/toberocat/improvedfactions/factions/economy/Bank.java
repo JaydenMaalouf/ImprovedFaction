@@ -1,6 +1,6 @@
 package io.github.toberocat.improvedfactions.factions.economy;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.factions.Faction;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -13,13 +13,13 @@ public class Bank {
 
     private boolean hasBank;
 
-    public Bank(Faction faction) {
+    public Bank(Faction faction, FactionsHandler factionsHandler) {
         this.faction = faction;
         hasBank = false;
-        Bukkit.getScheduler().runTaskLater(ImprovedFactionsMain.getPlugin(), () -> {
-            economy = ImprovedFactionsMain.getPlugin().getEconomy();
+        Bukkit.getScheduler().runTaskLater(factionsHandler.getPlugin(), () -> {
+            economy = factionsHandler.getEconomy();
             if (economy != null) {
-                ImprovedFactionsMain.getPlugin().getEconomy().createBank(faction.getRegistryName(),
+                economy.createBank(faction.getRegistryName(),
                         Bukkit.getOfflinePlayer(faction.getOwner()));
                 hasBank = true;
             }

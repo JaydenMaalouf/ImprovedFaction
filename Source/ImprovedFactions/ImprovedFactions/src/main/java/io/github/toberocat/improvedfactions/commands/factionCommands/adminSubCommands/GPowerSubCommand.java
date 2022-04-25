@@ -1,25 +1,22 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GPowerSubCommand extends SubCommand  {
-    public GPowerSubCommand() {
-        super("gpower", LangMessage.ADMIN_GPOWER_DESCRIPTION);
+    public GPowerSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "gpower", LangMessage.ADMIN_GPOWER_DESCRIPTION);
     }
 
     @Override
     protected void CommandExecute(Player player, String[] args) {
         if (args.length == 2) {
-            Faction faction = FactionUtils.getFactionByRegistry(args[0]);
+            var faction = factionsHandler.getFaction(args[0]);
 
             if (faction == null) {
                 player.sendMessage(Language.getPrefix() + "§cCan't find the faction");
@@ -41,13 +38,9 @@ public class GPowerSubCommand extends SubCommand  {
 
     @Override
     protected List<String> CommandTab(Player player, String[] args) {
-        List<String> str = new ArrayList<>();
         if (args.length == 1) {
-            for (Faction faction : Faction.getFACTIONS()) {
-                str.add(ChatColor.stripColor(faction.getDisplayName()));
-            }
+            return factionsHandler.getFactionNames();
         }
-
-        return str;
+        return null;
     }
 }

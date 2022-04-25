@@ -1,5 +1,6 @@
 package io.github.toberocat.improvedfactions.commands.subCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.event.FactionEvent;
 import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.factions.FactionUtils;
@@ -10,7 +11,9 @@ import java.lang.reflect.InvocationTargetException;
 
 public class SubCommandSettings {
 
-    public enum NYI { No, Yes, Ignore };
+    public enum NYI {
+        No, Yes, Ignore
+    };
 
     private String factionPermission;
     private boolean needsAdmin;
@@ -21,7 +24,9 @@ public class SubCommandSettings {
     private Object[] eventParameters;
     private boolean isCancellable;
 
-    public SubCommandSettings() {
+    private FactionsHandler factionsHandler;
+
+    public SubCommandSettings(FactionsHandler _factionsHandler) {
         factionPermission = null;
         needsAdmin = false;
         needsFaction = NYI.Ignore;
@@ -29,6 +34,7 @@ public class SubCommandSettings {
         eventCall = null;
         isCancellable = true;
         eventParameters = null;
+        factionsHandler = _factionsHandler;
     }
 
     public Object[] getEventParameters() {
@@ -95,32 +101,37 @@ public class SubCommandSettings {
     }
 
     public boolean areConditionsTrue(SubCommand subCommand, Player player, String[] args, boolean messages) {
-        Faction faction = FactionUtils.getFaction(player);
-        boolean result = true;
-
-
+        var faction = factionsHandler.getFaction(player);
+        var result = true;
         if (needsFaction == NYI.No && faction != null) {
             result = false;
-            if (messages) subCommand.CommandExecuteError(SubCommand.CommandExecuteError.NoFactionNeed, player);
+            if (messages) {
+                subCommand.CommandExecuteError(SubCommand.CommandExecuteError.NoFactionNeed, player);
+            }
         }
         if (needsFaction == NYI.Yes && faction == null) {
             result = false;
-            if (messages) subCommand.CommandExecuteError(SubCommand.CommandExecuteError.NoFaction, player);
+            if (messages) {
+                subCommand.CommandExecuteError(SubCommand.CommandExecuteError.NoFaction, player);
+            }
         }
         if (faction != null) {
-            if (needsAdmin && !FactionUtils.getPlayerRank(faction, player).isAdmin()) {
+            if (needsAdmin && !faction.getPlayerRank(player).isAdmin()) {
                 result = false;
-                if (messages) subCommand.CommandExecuteError(SubCommand.CommandExecuteError.OnlyAdminCommand, player);
+                if (messages) {
+                    subCommand.CommandExecuteError(SubCommand.CommandExecuteError.OnlyAdminCommand, player);
+                }
             }
             if (factionPermission != null && !faction.hasPermission(player, factionPermission)) {
                 result = false;
-                if (messages) subCommand.CommandExecuteError(SubCommand.CommandExecuteError.NoFactionPermission, player);
+                if (messages) {
+                    subCommand.CommandExecuteError(SubCommand.CommandExecuteError.NoFactionPermission, player);
+                }
             }
         }
-
         if (eventCall != null) {
             try {
-                boolean eventCall = Utils.CallEvent(getEventCall(), faction, eventParameters, isCancellable);
+                var eventCall = Utils.CallEvent(getEventCall(), faction, eventParameters, isCancellable);
                 result = eventCall && result;
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
                 e.printStackTrace();

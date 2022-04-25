@@ -1,17 +1,16 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class FrozeAdminCommand extends SubCommand {
-    public FrozeAdminCommand() {
-        super("freeze", "");
+    public FrozeAdminCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "freeze", "");
     }
 
     @Override
@@ -21,26 +20,22 @@ public class FrozeAdminCommand extends SubCommand {
             return;
         }
 
-        Faction f = FactionUtils.getFactionByRegistry(args[0]);
-        if (f == null) {
+        var faction = factionsHandler.getFaction(args[0]);
+        if (faction == null) {
             player.sendMessage(Language.getPrefix() + "§cCouldn't find faction to freeze");
             return;
         }
 
-        f.setFrozen(!f.isFrozen());
-        player.sendMessage(Language.getPrefix() + "§fFaction " + (f.isFrozen() ? "is now frozen" : "isn't frozen any more"));
+        faction.setFrozen(!faction.isFrozen());
+        player.sendMessage(Language.getPrefix() + "§fFaction " + (faction.isFrozen() ? "is now frozen" : "isn't frozen any more"));
     }
 
     @Override
     protected List<String> CommandTab(Player player, String[] args) {
-        LinkedList<String> str = new LinkedList<>();
-
-        if (args.length <= 1) {
-            for (Faction report : Faction.getFACTIONS()) {
-                str.add(report.getRegistryName());
-            }
+        if (args.length == 1){
+            return factionsHandler.getFactionNames();
         }
 
-        return str;
+        return null;
     }
 }

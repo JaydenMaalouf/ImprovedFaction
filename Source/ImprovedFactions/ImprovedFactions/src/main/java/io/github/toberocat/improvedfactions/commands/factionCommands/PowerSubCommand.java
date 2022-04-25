@@ -1,17 +1,17 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
 import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
 public class PowerSubCommand extends SubCommand {
-    public PowerSubCommand() {
-        super("power", "");
+    public PowerSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "power", "");
     }
 
     public SubCommandSettings getSettings() {
@@ -22,9 +22,13 @@ public class PowerSubCommand extends SubCommand {
     protected void CommandExecute(Player player, String[] args) {
         Faction faction = null;
         if (args.length == 0) {
-            faction = FactionUtils.getFaction(player);
+            faction = factionsHandler.getFaction(player);
         } else {
-            faction = FactionUtils.getFactionByRegistry(args[0]);
+            faction = factionsHandler.getFaction(args[0]);
+        }
+
+        if (faction == null){
+            return;
         }
 
         player.sendMessage(Language.getPrefix() + "§e"+faction.getDisplayName()+"'s current power: " +

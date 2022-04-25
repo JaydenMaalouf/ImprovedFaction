@@ -22,17 +22,7 @@ public class ChunkUtils {
 
     public static List<Vector2> claimedChunks = new ArrayList<>();
 
-    public static final NamespacedKey FACTION_CLAIMED_KEY = new NamespacedKey(ImprovedFactionsMain.getPlugin(), "faction-claimed");
 
-    public static Faction GetFactionClaimedChunk(Chunk chunk) {
-        if (chunk == null) return null;
-        PersistentDataContainer container = chunk.getPersistentDataContainer();
-        if (container.has(FACTION_CLAIMED_KEY, PersistentDataType.STRING)) {
-            String factionRegistry = container.get(FACTION_CLAIMED_KEY, PersistentDataType.STRING);
-            return FactionUtils.getFactionByRegistry(factionRegistry);
-        }
-        return null;
-    }
 
     public static void UnClaimChunk(@NotNull Chunk chunk, @NotNull Faction faction, TCallback<ClaimStatus> callback) {
         PersistentDataContainer container = chunk.getPersistentDataContainer();
@@ -212,11 +202,6 @@ public class ChunkUtils {
         if (!ContainsChunk(chunk)) {
             claimedChunks.add(new Vector2(chunk.getX(), chunk.getZ()));
         }
-    }
-
-    public static void Save() {
-        ImprovedFactionsMain.getPlugin().getChunkData().getConfig().set("claimedChunks", Utils.listToStringList(claimedChunks));
-        ImprovedFactionsMain.getPlugin().getChunkData().saveConfig();
     }
 
     public static void Init() {

@@ -1,5 +1,6 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands;
 
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.Bukkit;
@@ -10,39 +11,42 @@ import java.util.*;
 
 public class ByPassSubCommand extends SubCommand {
 
-    public static List<UUID> BYPASS = new ArrayList<>();
-
-    public ByPassSubCommand() {
-        super("bypass", "");
+    public ByPassSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "bypass", "");
     }
 
     @Override
     protected void CommandExecute(Player player, String[] args) {
-        UUID toggle;
-        Player message = null;
+        Player selectedPlayer = null;
         if (args.length == 0) {
-            toggle = player.getUniqueId();
-            message = player;
+            selectedPlayer = player;
         } else {
-            OfflinePlayer user = Bukkit.getOfflinePlayer(args[0]);
-            if (user == null) {
+            var existingPlayer = Bukkit.getPlayer(args[0]);
+            if (existingPlayer == null) {
                 CommandExecuteError(CommandExecuteError.PlayerNotFound, player);
                 return;
             }
 
-            toggle = user.getUniqueId();
-            if (user.isOnline()) message = user.getPlayer();
+            if (existingPlayer.isOnline()) {
+                selectedPlayer = existingPlayer;
+            }
         }
 
-        if (BYPASS.contains(toggle)) {
-            BYPASS.remove(toggle);
-            if (message == null) Language.sendRawMessage("Disabled bypass for " + args[0], player);
-            else Language.sendRawMessage("Disabled bypass", message);
+        if (selectedPlayer == null) {
+            return;
         }
-        else {
-            BYPASS.add(toggle);
-            if (message == null) Language.sendRawMessage("Enabled bypass for " + args[0], player);
-            else Language.sendRawMessage("Enabled bypass", message);
+
+        var playerData = factionsHandler.getPlayerData(selectedPlayer);
+        if (playerData == null) {
+            return;
+        }
+
+        if (playerData.getBypass()) {
+            playerData.setBypass(false);
+            Language.sendRawMessage("Disabled bypass for " + args[0], selectedPlayer);
+        } else {
+            playerData.setBypass(true);
+            Language.sendRawMessage("Enabled bypass for " + args[0], selectedPlayer);
         }
     }
 

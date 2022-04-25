@@ -1,44 +1,40 @@
 package io.github.toberocat.improvedfactions.commands.factionCommands;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class WhoSubCommand extends SubCommand {
 
-    public WhoSubCommand() {
-        super("who", "");
+    public WhoSubCommand(FactionsHandler factionsHandler) {
+        super(factionsHandler, "who", "");
     }
 
     @Override
     protected void CommandExecute(Player player, String[] args) {
         Faction faction;
         if (args.length == 0) {
-            if (FactionUtils.getFaction(player) == null) {
+            faction = factionsHandler.getFaction(player);
+            if (faction == null) {
                 Language.sendRawMessage("&cYou are in no faction. Please select one", player);
                 return;
             }
-            faction = FactionUtils.getFaction(player);
         } else {
-            faction =  FactionUtils.getFactionByRegistry(args[0]);
+            faction =  factionsHandler.getFaction(args[0]);
         }
         if (faction == null) {
             CommandExecuteError(CommandExecuteError.NoFaction, player);
             return;
         }
 
-        String displayName = faction.getDisplayName();
-
-        String topBottomMessage = "=".repeat(ChatColor.stripColor(displayName).length() + 10);
+        var displayName = faction.getDisplayName();
+        var topBottomMessage = "=".repeat(ChatColor.stripColor(displayName).length() + 10);
         Language.sendRawMessage(topBottomMessage, player);
         Language.sendRawMessage("&f====  &e" + displayName + "  &f====", player);
         Language.sendRawMessage(topBottomMessage, player);
@@ -48,8 +44,8 @@ public class WhoSubCommand extends SubCommand {
         Language.sendRawMessage("Owner: &e" + Bukkit.getOfflinePlayer(faction.getOwner()).getName(), player);
 
         Language.sendRawMessage("Members online: " +
-                FactionUtils.getPlayersOnline(faction).size() + "/" +
-                FactionUtils.getAllPlayers(faction).size(), player);
+                faction.getPlayersOnline().size() + "/" +
+                faction.getAllPlayers().size(), player);
 
         Language.sendRawMessage("Power: " +
                 faction.getPowerManager().getPower() + "/" +
@@ -65,22 +61,22 @@ public class WhoSubCommand extends SubCommand {
         Language.sendRawMessage("Ally: " +
                 String.join(", ", faction.getRelationManager().getAllies()), player);
 
-        Language.sendRawMessage("Banned players: &7" + faction.getBannedPeople().size(), player);
+        Language.sendRawMessage("Banned players: &7" + faction.getBannedPlayers().size(), player);
 
 
-        String allBanned = String.join(", ", faction.getBannedPeople().stream().map(x -> Bukkit.getOfflinePlayer(x).getName()).toArray(String[]::new));
+        String allBanned = String.join(", ", faction.getBannedPlayers().stream().map(x -> Bukkit.getOfflinePlayer(x).getName()).toArray(String[]::new));
         if (allBanned != null && !allBanned.isEmpty()) Language.sendRawMessage(allBanned, player);
 
         if (faction.getBank().balance() == null) {
             Language.sendRawMessage("Balance: &eFaction economy disabled", player);
         } else {
-            Language.sendRawMessage("Balance: &e" + ImprovedFactionsMain.getPlugin().getEconomy().format(faction.getBank().balance().balance), player);
+            Language.sendRawMessage("Balance: &e" + factionsHandler.getEconomy().format(faction.getBank().balance().balance), player);
         }
         if (faction.isFrozen()) Language.sendRawMessage("&bFrozen", player);
     }
 
     @Override
     protected List<String> CommandTab(Player player, String[] args) {
-        return Faction.getFACTIONS().stream().map(Faction::getRegistryName).toList();
+        return factionsHandler.getFactionNames();
     }
 }
