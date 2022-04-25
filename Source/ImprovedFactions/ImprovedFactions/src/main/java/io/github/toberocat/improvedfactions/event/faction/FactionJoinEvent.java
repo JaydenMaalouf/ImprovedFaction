@@ -8,34 +8,27 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.NotNull;
 
 public class FactionJoinEvent extends Event implements Cancellable {
+    private Faction faction;
+    private UUID player;
 
     private boolean isCancelled = false;
-    private static final HandlerList HANDLERS = new HandlerList();
-
-    private Faction faction;
     private String cancelMessage = "";
 
-    private UUID playerId;
     public FactionJoinEvent(Faction faction, Player player) {
         this.faction = faction;
-        playerId = player.getUniqueId();
+        this.player = player.getUniqueId();
     }
 
     public FactionJoinEvent(Faction faction, UUID uuid) {
         this.faction = faction;
-        playerId = uuid;
+        this.player = uuid;
     }
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS;
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
+        return null;
     }
 
     @Override
@@ -56,7 +49,7 @@ public class FactionJoinEvent extends Event implements Cancellable {
     }
 
     public UUID getPlayer() {
-        return playerId;
+        return player;
     }
 
     public void setPlayer(Player player) {
@@ -64,7 +57,7 @@ public class FactionJoinEvent extends Event implements Cancellable {
     }
 
     public void setPlayer(UUID uuid) {
-        playerId = uuid;
+        player = uuid;
     }
 
     public String getCancelMessage() {

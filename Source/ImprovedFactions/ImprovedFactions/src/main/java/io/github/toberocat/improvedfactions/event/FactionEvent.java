@@ -6,16 +6,11 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 public abstract class FactionEvent extends Event implements Cancellable {
-
-    private static final HandlerList HANDLERS = new HandlerList();
-
-    protected boolean isCancelled;
-
+    protected boolean isCancelled = false;
     protected Faction faction;
 
     public FactionEvent(Faction faction) {
         this.faction = faction;
-        isCancelled = false;
     }
 
     @Override
@@ -28,14 +23,9 @@ public abstract class FactionEvent extends Event implements Cancellable {
         this.isCancelled = isCancelled;
     }
 
-
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS;
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
+        return null;
     }
 
     public Faction getFaction() {

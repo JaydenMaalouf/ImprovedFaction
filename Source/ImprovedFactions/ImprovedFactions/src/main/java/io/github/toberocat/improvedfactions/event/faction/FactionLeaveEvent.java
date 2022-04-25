@@ -10,7 +10,6 @@ import org.bukkit.event.HandlerList;
 public class FactionLeaveEvent extends Event implements Cancellable {
 
     private boolean isCancelled = false;
-    private static final HandlerList HANDLERS = new HandlerList();
 
     private Faction faction;
     private OfflinePlayer player;
@@ -23,11 +22,7 @@ public class FactionLeaveEvent extends Event implements Cancellable {
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS;
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
+        return null;
     }
 
     @Override

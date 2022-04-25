@@ -3,7 +3,6 @@ package io.github.toberocat.improvedfactions.commands.subCommands;
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
 import io.github.toberocat.improvedfactions.language.Language;
-import io.github.toberocat.improvedfactions.utility.Debugger;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.entity.Player;
 
@@ -40,12 +39,12 @@ public abstract class SubCommand {
         this.description = descriptionKey;
         this.factionsHandler = factionsHandler;
 
-        if (getSettings().isAllowAliases()) {
-            ImprovedFactionsMain.getPlugin().getCommandData().getConfig().addDefault("commands." + permission + ".aliases", new ArrayList<String>());
-            ImprovedFactionsMain.getPlugin().getCommandData().getConfig().addDefault("commands." + permission + ".costs", new ArrayList<String>());
-            ImprovedFactionsMain.getPlugin().getCommandData().getConfig().options().copyDefaults(true);
-            ImprovedFactionsMain.getPlugin().getCommandData().saveConfig();
-        }
+        // if (getSettings().isAllowAliases()) {
+        //     ImprovedFactionsMain.getPlugin().getCommandData().getConfig().addDefault("commands." + permission + ".aliases", new ArrayList<String>());
+        //     ImprovedFactionsMain.getPlugin().getCommandData().getConfig().addDefault("commands." + permission + ".costs", new ArrayList<String>());
+        //     ImprovedFactionsMain.getPlugin().getCommandData().getConfig().options().copyDefaults(true);
+        //     ImprovedFactionsMain.getPlugin().getCommandData().saveConfig();
+        // }
     }
 
     public SubCommand(FactionsHandler factionsHandler, String subCommand, String descriptionKey) {
@@ -54,12 +53,12 @@ public abstract class SubCommand {
         this.description = descriptionKey;
         this.factionsHandler = factionsHandler;
 
-        if (getSettings().isAllowAliases()) {
-            ImprovedFactionsMain.getPlugin().getCommandData().getConfig().addDefault("commands." + permission + ".aliases", new ArrayList<String>());
-            ImprovedFactionsMain.getPlugin().getCommandData().getConfig().addDefault("commands." + permission + ".costs", 0);
-            ImprovedFactionsMain.getPlugin().getCommandData().getConfig().options().copyDefaults(true);
-            ImprovedFactionsMain.getPlugin().getCommandData().saveConfig();
-        }
+        // if (getSettings().isAllowAliases()) {
+        //     ImprovedFactionsMain.getPlugin().getCommandData().getConfig().addDefault("commands." + permission + ".aliases", new ArrayList<String>());
+        //     ImprovedFactionsMain.getPlugin().getCommandData().getConfig().addDefault("commands." + permission + ".costs", 0);
+        //     ImprovedFactionsMain.getPlugin().getCommandData().getConfig().options().copyDefaults(true);
+        //     ImprovedFactionsMain.getPlugin().getCommandData().saveConfig();
+        // }
     }
 
     protected String getExtendedDescription() {
@@ -77,12 +76,12 @@ public abstract class SubCommand {
                 var newArguments = Arrays.copyOfRange(args, 1, args.length);
                 if (command.CommandDisplayCondition(player, newArguments)) {
                     arguments.add(command.subCommand);
-                    arguments.addAll(command.getAliases());
+                    //arguments.addAll(command.getAliases());
                 }
             }
         } else {
             for (var command : subCommands) {
-                if (args[0].equalsIgnoreCase(command.getSubCommand()) || command.getAliases().contains(args[0])) {
+                if (args[0].equalsIgnoreCase(command.getSubCommand())) {// || command.getAliases().contains(args[0])) {
                     var newArguments = Arrays.copyOfRange(args, 1, args.length);
                     if (command.CommandDisplayCondition(player, newArguments)) {
                         var str = command.CommandTab(player, newArguments);
@@ -126,7 +125,7 @@ public abstract class SubCommand {
     public boolean CallSubCommands(Player player, String[] args) {
         if (args.length == 0) return false;
         for (SubCommand command : subCommands) {
-            if (args[0].equalsIgnoreCase(command.getSubCommand()) || command.getAliases().contains(args[0])) {
+            if (args[0].equalsIgnoreCase(command.getSubCommand())) {// || command.getAliases().contains(args[0])) {
                 String[] newArguments = Arrays.copyOfRange(args, 1, args.length);
                 command.CallSubCommand(player, newArguments);
                 return true;
@@ -138,16 +137,16 @@ public abstract class SubCommand {
     public void CallSubCommand(Player player, String[] args) {
         if (player.hasPermission("faction.commands."+permission)) {
             if (getSettings().areConditionsTrue(this, player, args, true)) {
-                Debugger.LogInfo("Calling command " + subCommand);
+                factionsHandler.getLogger().info("Calling command " + subCommand);
                 if (factionsHandler.getEconomy() == null) {
                     CommandExecute(player, args);
                 } else {
-                    if (factionsHandler.getConfig().getBoolean("general.allowNegativeBalance") && ImprovedFactionsMain.getPlugin().getEconomy().getBalance(player) <= 0) {
-                        player.sendMessage(Language.getPrefix() + Language.format("&cCan't withdraw " + getCosts() + ", because else you would have a negative balance"));
+                    if (factionsHandler.getConfig().getBoolean("general.allowNegativeBalance") && factionsHandler.getEconomy().getBalance(player) <= 0) {
+                        player.sendMessage(Language.getPrefix() + Language.format("&cCan't withdraw " + 0.0d + ", because else you would have a negative balance"));
                         return;
                     }
 
-                    var response = factionsHandler.getEconomy().withdrawPlayer(player, getCosts());
+                    var response = factionsHandler.getEconomy().withdrawPlayer(player, 0.0d);
                     if (response.transactionSuccess()) {
                         if (response.amount != 0) {
                             player.sendMessage(Language.getPrefix() + Language.format("&fYou paid &6" + response.amount + "&f for using this command. Your current balance is &a" + response.balance));
@@ -196,21 +195,21 @@ public abstract class SubCommand {
         }
     }
 
-    private List<String> getAliases() {
-        List<String> aliases = new ArrayList<>();
-        if (!ImprovedFactionsMain.getPlugin().getCommandData().getConfig().contains("commands." + permission + ".aliases"))
-            return aliases;
+    // private List<String> getAliases() {
+    //     List<String> aliases = new ArrayList<>();
+    //     if (!ImprovedFactionsMain.getPlugin().getCommandData().getConfig().contains("commands." + permission + ".aliases"))
+    //         return aliases;
 
-        aliases.addAll(ImprovedFactionsMain.getPlugin().getCommandData().getConfig()
-                .getStringList("commands." + permission + ".aliases"));
+    //     aliases.addAll(ImprovedFactionsMain.getPlugin().getCommandData().getConfig()
+    //             .getStringList("commands." + permission + ".aliases"));
 
-        return aliases;
-    }
+    //     return aliases;
+    // }
 
-    private int getCosts() {
-        return ImprovedFactionsMain.getPlugin().getCommandData().getConfig()
-                .getInt("commands." + permission + ".costs");
-    }
+    // private int getCosts() {
+    //     return factionsHandler.getCommandData().getConfig()
+    //             .getInt("commands." + permission + ".costs");
+    // }
 
     protected boolean CommandDisplayCondition(Player player, String[] args) {
         if (player.hasPermission("faction.commands." + permission)) {

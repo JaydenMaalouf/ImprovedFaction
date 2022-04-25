@@ -2,15 +2,10 @@ package io.github.toberocat.improvedfactions.event.chunk;
 
 import io.github.toberocat.improvedfactions.factions.Faction;
 import org.bukkit.Chunk;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 public class ChunkUnclaimEvent extends Event {
-    private boolean isCancelled = false;
-    private static final HandlerList HANDLERS = new HandlerList();
-
     private Chunk chunk;
     private Faction faction;
 
@@ -21,11 +16,7 @@ public class ChunkUnclaimEvent extends Event {
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS;
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
+        return null;
     }
 
     public Chunk getChunk() {

@@ -3,8 +3,6 @@ package io.github.toberocat.improvedfactions.commands.subCommands;
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.event.FactionEvent;
 import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
-import io.github.toberocat.improvedfactions.utility.Utils;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
@@ -130,12 +128,12 @@ public class SubCommandSettings {
             }
         }
         if (eventCall != null) {
-            try {
-                var eventCall = Utils.CallEvent(getEventCall(), faction, eventParameters, isCancellable);
-                result = eventCall && result;
-            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
-                e.printStackTrace();
-            }
+            // try {
+            //     var eventCall = Utils.CallEvent(getEventCall(), faction, eventParameters, isCancellable);
+            //     result = eventCall && result;
+            // } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
+            //     e.printStackTrace();
+            // }
         }
         return result;
     }

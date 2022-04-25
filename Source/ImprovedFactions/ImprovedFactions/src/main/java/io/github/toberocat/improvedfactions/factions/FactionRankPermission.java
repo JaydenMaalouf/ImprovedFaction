@@ -58,7 +58,7 @@ public class FactionRankPermission {
     }
 
     private static FactionRankPermission getPermisson(String key) {
-        return FactionSettings.RANKS.get(key);
+        return null;//FactionSettings.RANKS.get(key);
     }
 
     public List<Rank> getRanks() {

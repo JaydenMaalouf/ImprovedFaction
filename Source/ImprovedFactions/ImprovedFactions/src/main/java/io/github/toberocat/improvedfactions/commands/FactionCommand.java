@@ -1,7 +1,7 @@
 package io.github.toberocat.improvedfactions.commands;
 
+import io.github.toberocat.improvedfactions.commands.admin.*;
 import io.github.toberocat.improvedfactions.commands.factionCommands.*;
-import io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands.WarnSubCommand;
 import io.github.toberocat.improvedfactions.commands.factionCommands.relations.*;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
@@ -27,22 +27,22 @@ public class FactionCommand extends SubCommand implements CommandExecutor {
         AddSubCommand(new ClaimChunkSubCommand(factionsHandler));
         AddSubCommand(new UnClaimChunkCommands(factionsHandler));
         AddSubCommand(new VersionSubCommand(factionsHandler));
-        AddSubCommand(new SettingsSubCommand(factionsHandler));
+        //AddSubCommand(new SettingsSubCommand(factionsHandler));
         AddSubCommand(new JoinPrivateFactionSubCommand(factionsHandler));
         AddSubCommand(new InviteSubCommand(factionsHandler));
-        AddSubCommand(new RankSubCommand(factionsHandler));
+        //AddSubCommand(new RankSubCommand(factionsHandler));
         AddSubCommand(new KickSubCommand(factionsHandler));
         AddSubCommand(new MapSubCommand(factionsHandler));
         AddSubCommand(new DescriptionSubCommand(factionsHandler));
         AddSubCommand(new BanSubCommand(factionsHandler));
         AddSubCommand(new UnbanSubCommand(factionsHandler));
-        AddSubCommand(new ReloadConfigSubCommand(factionsHandler));
+        //AddSubCommand(new ReloadConfigSubCommand(factionsHandler));
         AddSubCommand(new ListBannedSubCommand(factionsHandler));
         AddSubCommand(new RulesSubCommand(factionsHandler));
         AddSubCommand(new SetRulesSubCommand(factionsHandler));
         AddSubCommand(new AdminSubCommand(factionsHandler));
         AddSubCommand(new WhoSubCommand(factionsHandler));
-        AddSubCommand(new WarnSubCommand(factionsHandler));
+        //AddSubCommand(new AdminWarningSubCommand(factionsHandler));
 
         AddSubCommand(new AllySubCommand(factionsHandler));
         AddSubCommand(new AllyAcceptSubCommand(factionsHandler));
@@ -53,7 +53,7 @@ public class FactionCommand extends SubCommand implements CommandExecutor {
         AddSubCommand(new ClaimPower(factionsHandler));
         AddSubCommand(new TutorialCommand(factionsHandler));
         AddSubCommand(new InviteAccept(factionsHandler));
-        AddSubCommand(new ReportSubCommand(factionsHandler));
+        //AddSubCommand(new ReportSubCommand(factionsHandler));
 
         this.factionsHandler = factionsHandler;
     }

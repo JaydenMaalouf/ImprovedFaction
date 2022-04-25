@@ -1,8 +1,6 @@
 package io.github.toberocat.improvedfactions.ranks;
 
 import io.github.toberocat.improvedfactions.language.Language;
-import io.github.toberocat.improvedfactions.utility.Utils;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,10 +58,6 @@ public abstract class Rank {
     }
 
     public abstract String description(int line);
-
-    public ItemStack getItem() {
-        return Utils.getSkull("http://textures.minecraft.net/texture/126b772329cf32f8643c4928626b6a325233ff61aa9c7725873a4bd66db3d692", 1, displayName);
-    }
 
     @Override
     public String toString() {

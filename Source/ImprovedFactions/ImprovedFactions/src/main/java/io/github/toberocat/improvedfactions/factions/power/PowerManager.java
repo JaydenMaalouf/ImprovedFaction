@@ -4,7 +4,7 @@ import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.factions.FactionMember;
 import io.github.toberocat.improvedfactions.language.Language;
-import io.github.toberocat.improvedfactions.utility.Debugger;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
@@ -81,7 +81,7 @@ public class PowerManager {
         
         new Thread(() -> {
             isGeneratingPower = true;
-            Debugger.LogInfo("Started generation of power");
+            factionsHandler.getLogger().warning("Started generation of power");
             while (power < maxPower) {
                 try {
                     Thread.sleep(factionsHandler.getConfig()

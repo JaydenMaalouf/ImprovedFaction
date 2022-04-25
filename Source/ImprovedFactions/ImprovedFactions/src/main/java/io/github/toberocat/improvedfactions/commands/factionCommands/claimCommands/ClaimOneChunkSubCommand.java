@@ -3,7 +3,7 @@ package io.github.toberocat.improvedfactions.commands.factionCommands.claimComma
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
-import io.github.toberocat.improvedfactions.factions.Faction;
+import io.github.toberocat.improvedfactions.data.Permissions;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 
 import org.bukkit.entity.Player;
@@ -21,7 +21,7 @@ public class ClaimOneChunkSubCommand extends SubCommand {
                 .setNeedsFaction(SubCommandSettings.NYI.Yes)
                 .setAllowAliases(true)
                 .setNeedsAdmin(false)
-                .setFactionPermission(Faction.CLAIM_CHUNK_PERMISSION);
+                .setFactionPermission(Permissions.CLAIM_CHUNK_PERMISSION);
     }
 
     @Override

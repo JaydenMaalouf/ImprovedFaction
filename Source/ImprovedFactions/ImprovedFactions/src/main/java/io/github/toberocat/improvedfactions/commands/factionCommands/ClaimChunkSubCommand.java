@@ -5,7 +5,7 @@ import io.github.toberocat.improvedfactions.commands.factionCommands.claimComman
 import io.github.toberocat.improvedfactions.commands.factionCommands.claimCommands.ClaimOneChunkSubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
-import io.github.toberocat.improvedfactions.factions.Faction;
+import io.github.toberocat.improvedfactions.data.Permissions;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
@@ -26,7 +26,7 @@ public class ClaimChunkSubCommand extends SubCommand {
                 .setNeedsAdmin(false)
                 .setAllowAliases(true)
                 .setNeedsFaction(SubCommandSettings.NYI.Yes)
-                .setFactionPermission(Faction.CLAIM_CHUNK_PERMISSION);
+                .setFactionPermission(Permissions.CLAIM_CHUNK_PERMISSION);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ClaimChunkSubCommand extends SubCommand {
         if (faction == null) {
             result = false;
 
-        } else if (!faction.hasPermission(player, Faction.CLAIM_CHUNK_PERMISSION)) {
+        } else if (!faction.hasPermission(player, Permissions.CLAIM_CHUNK_PERMISSION)) {
             result = false;
         }
 

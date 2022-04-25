@@ -22,39 +22,19 @@ import io.github.toberocat.improvedfactions.language.Parseable;
 import io.github.toberocat.improvedfactions.ranks.Rank;
 import io.github.toberocat.improvedfactions.reports.Report;
 
-import org.bukkit.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.*;
 
 public class Faction {
-    public enum OpenType {
-        Public("&aPublic"),
-        Private("&cPrivate");
-
-        private final String display;
-
-        OpenType(String display) {
-            this.display = Language.format(display);
-        }
-
-        @Override
-        public String toString() {
-            return display;
-        }
-    }
-
-    public static String CLAIM_CHUNK_PERMISSION = "claim_chunk";
-    public static String UNCLAIM_CHUNK_PERMISSION = "unclaim_chunk";
-    public static String INVITE_PERMISSION = "invite";
-    public static String BUILD_PERMISSION = "build";
-    public static String BREAK_PERMISSION = "break";
-    public static String LIST_BANNED_PERMISSION = "listBanned";
-    public static String OPENTYPE_FLAG = "openType";
-    public static String RENAME_FLAG = "rename";
-    public static String MOTD = "motd";
-
     private String rules;
 
     private String displayName;
@@ -86,7 +66,7 @@ public class Faction {
     public Faction(FactionsHandler factionsHandler, String name) {
         this.factionsHandler = factionsHandler;
 
-        displayName = name;
+        this.displayName = name;
         this.registryName = ChatColor.stripColor(displayName);
         this.claimedChunks = 0;
 
@@ -94,15 +74,15 @@ public class Faction {
         // members = new
         // FactionMember[_factionsHandler.getConfig().getInt("factions.maxMembers")];
 
-        bannedPlayers = new ArrayList<>();
-        settings = new FactionSettings(factionsHandler);
+        this.bannedPlayers = new ArrayList<>();
+        this.settings = new FactionSettings(factionsHandler);
 
-        relationManager = new RelationManager(this);
-        powerManager = new PowerManager(this, factionsHandler);
-        bankManager = new Bank(this, factionsHandler);
+        this.relationManager = new RelationManager(this);
+        this.powerManager = new PowerManager(this, factionsHandler);
+        this.bankManager = new Bank(this, factionsHandler);
 
-        permanent = factionsHandler.getConfig().getBoolean("faction.permanent");
-        frozen = false;
+        this.permanent = factionsHandler.getConfig().getBoolean("faction.permanent");
+        this.frozen = false;
     }
 
     public String getDisplayName() {
@@ -110,7 +90,7 @@ public class Faction {
     }
 
     public FactionRankPermission getPermission(String perm) {
-        return settings.getRanks().get(perm);
+        return null; //settings.getRanks().get(perm);
     }
 
     public FactionSettings getSettings() {
@@ -141,7 +121,7 @@ public class Faction {
             }
         }
 
-        var perms = settings.getRanks().get(permission);
+        var perms = getPermission(permission);
         if (perms == null) {
             factionsHandler.getConsoleSender().sendMessage("Couldn't get permissions for "
                     + permission

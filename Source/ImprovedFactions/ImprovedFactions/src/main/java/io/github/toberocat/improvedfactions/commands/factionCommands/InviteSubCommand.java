@@ -3,7 +3,7 @@ package io.github.toberocat.improvedfactions.commands.factionCommands;
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
-import io.github.toberocat.improvedfactions.factions.Faction;
+import io.github.toberocat.improvedfactions.data.Permissions;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 
 import org.bukkit.Bukkit;
@@ -61,7 +61,7 @@ public class InviteSubCommand extends SubCommand {
         var faction = factionsHandler.getFaction(player);
         if (faction == null) {
             result = false;
-        } else if (!faction.hasPermission(player, Faction.INVITE_PERMISSION)) {
+        } else if (!faction.hasPermission(player, Permissions.INVITE_PERMISSION)) {
             result = false;
         }
         return result;

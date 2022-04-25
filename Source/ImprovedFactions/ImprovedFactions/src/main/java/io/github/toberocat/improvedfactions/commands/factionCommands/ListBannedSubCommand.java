@@ -3,7 +3,7 @@ package io.github.toberocat.improvedfactions.commands.factionCommands;
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommandSettings;
-import io.github.toberocat.improvedfactions.factions.Faction;
+import io.github.toberocat.improvedfactions.data.Permissions;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.Bukkit;
@@ -18,7 +18,7 @@ public class ListBannedSubCommand extends SubCommand {
 
     @Override
     public SubCommandSettings getSettings() {
-        return super.getSettings().setNeedsFaction(SubCommandSettings.NYI.Yes).setFactionPermission(Faction.LIST_BANNED_PERMISSION);
+        return super.getSettings().setNeedsFaction(SubCommandSettings.NYI.Yes).setFactionPermission(Permissions.LIST_BANNED_PERMISSION);
     }
 
     @Override

@@ -4,7 +4,7 @@ import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.factionCommands.claimCommands.UnclaimAutoChunkSubCommand;
 import io.github.toberocat.improvedfactions.commands.factionCommands.claimCommands.UnclaimOneChunkSubCommand;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
-import io.github.toberocat.improvedfactions.factions.Faction;
+import io.github.toberocat.improvedfactions.data.Permissions;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.entity.Player;
@@ -37,7 +37,7 @@ public class UnClaimChunkCommands extends SubCommand {
             return;
         }
 
-        if (faction.hasPermission(player, Faction.UNCLAIM_CHUNK_PERMISSION)) {
+        if (faction.hasPermission(player, Permissions.UNCLAIM_CHUNK_PERMISSION)) {
             if(!this.CallSubCommands(player, args)) {
                 player.sendMessage(Language.getPrefix() + "§cThis command doesn't exist");
             }
@@ -59,7 +59,7 @@ public class UnClaimChunkCommands extends SubCommand {
             return false;
         }
         
-        if (!faction.hasPermission(player, Faction.UNCLAIM_CHUNK_PERMISSION)) {
+        if (!faction.hasPermission(player, Permissions.UNCLAIM_CHUNK_PERMISSION)) {
             return false;
         }
 

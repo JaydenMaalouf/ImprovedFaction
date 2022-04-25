@@ -21,19 +21,19 @@ import org.bukkit.persistence.PersistentDataType;
 import io.github.toberocat.improvedfactions.commands.FactionCommand;
 import io.github.toberocat.improvedfactions.data.PlayerData;
 import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionData;
-import io.github.toberocat.improvedfactions.factions.FactionMember;
-import io.github.toberocat.improvedfactions.factions.FactionRankPermission;
-import io.github.toberocat.improvedfactions.factions.power.PowerManager;
-import io.github.toberocat.improvedfactions.factions.relation.RelationManager;
-import io.github.toberocat.improvedfactions.gui.Flag;
+import io.github.toberocat.improvedfactions.listeners.ArrowHitListener;
+import io.github.toberocat.improvedfactions.listeners.BlockExplosionListener;
+import io.github.toberocat.improvedfactions.listeners.OnBlockBreak;
+import io.github.toberocat.improvedfactions.listeners.OnBlockPlace;
+import io.github.toberocat.improvedfactions.listeners.OnEntityDamage;
+import io.github.toberocat.improvedfactions.listeners.OnEntityInteract;
+import io.github.toberocat.improvedfactions.listeners.OnInteract;
+import io.github.toberocat.improvedfactions.listeners.OnJoin;
+import io.github.toberocat.improvedfactions.listeners.OnLeave;
+import io.github.toberocat.improvedfactions.listeners.OnPlayerDeathListener;
 import io.github.toberocat.improvedfactions.listeners.OnPlayerMove;
 import io.github.toberocat.improvedfactions.listeners.OnWorldSaveListener;
-import io.github.toberocat.improvedfactions.ranks.OwnerRank;
-import io.github.toberocat.improvedfactions.ranks.Rank;
-import io.github.toberocat.improvedfactions.reports.Report;
 import io.github.toberocat.improvedfactions.tab.FactionCommandTab;
-import io.github.toberocat.improvedfactions.utility.Utils;
 import net.milkbowl.vault.economy.Economy;
 import io.github.toberocat.improvedfactions.commands.FDelCommand;
 import io.github.toberocat.improvedfactions.commands.FDelPCommand;
@@ -43,8 +43,10 @@ public class FactionsHandler {
 	private List<Faction> factions = new ArrayList<Faction>();
 	private Map<UUID, PlayerData> playerData = new HashMap<>();
 
+	private Economy economy;
 	private Logger logger;
 	private ImprovedFactionsMain factionsPlugin;
+	private BlockWatcher blockWatcher;
 
 	public static NamespacedKey FACTION_CLAIMED_KEY;
 
@@ -53,10 +55,16 @@ public class FactionsHandler {
 		this.logger = factionsPlugin.getLogger();
 
 		FACTION_CLAIMED_KEY = new NamespacedKey(factionsPlugin, "faction-claimed");
+
+		this.blockWatcher = new BlockWatcher();
 	}
 
 	public ImprovedFactionsMain getPlugin() {
 		return factionsPlugin;
+	}
+
+	public Logger getLogger() {
+		return logger;
 	}
 
 	public void setupCommands() {
@@ -119,163 +127,160 @@ public class FactionsHandler {
 
 	public void setupEvents() {
 		factionsPlugin.getServer().getPluginManager().registerEvents(new OnWorldSaveListener(this), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnPlayerMove(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnChunkEntered(), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnPlayerMove(this), factionsPlugin);
 
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnBlockBreak(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnBlockPlace(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnInteract(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnEntityInteract(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnEntityDamage(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new ArrowHitListener(), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnBlockBreak(this), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnBlockPlace(this, blockWatcher), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnInteract(this), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnEntityInteract(this), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnEntityDamage(this), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new ArrowHitListener(this), factionsPlugin);
 
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnJoin(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnLeave(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new OnPlayerDeathListener(), factionsPlugin);
-		factionsPlugin.getServer().getPluginManager().registerEvents(new BlockExplosionListener(), factionsPlugin);
-
-		factionsPlugin.getServer().getPluginManager().registerEvents(guiListener, this);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnJoin(this), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnLeave(this), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new OnPlayerDeathListener(this), factionsPlugin);
+		factionsPlugin.getServer().getPluginManager().registerEvents(new BlockExplosionListener(this, blockWatcher), factionsPlugin);
 	}
 
 	public void saveFactions() {
-		var factionData = factionsPlugin.getFactionData();
-		factionData.getConfig().set("f", null);
-		factionData.saveConfig();
-		for (var faction : getFactions()) {
-			List<String> _members = new ArrayList<String>();
-			for (var factionMember : faction.getMembers()) {
-				if (factionMember != null) {
-					_members.add(factionMember.toString());
-				}
-			}
+		// var factionData = factionsPlugin.getFactionData();
+		// factionData.getConfig().set("f", null);
+		// factionData.saveConfig();
+		// for (var faction : getFactions()) {
+		// 	List<String> _members = new ArrayList<String>();
+		// 	for (var factionMember : faction.getMembers()) {
+		// 		if (factionMember != null) {
+		// 			_members.add(factionMember.toString());
+		// 		}
+		// 	}
 
-			List<String> permissions = new ArrayList<>();
-			for (var key : faction.getSettings().getRanks().keySet()) {
-				var permission = faction.getPermission(key);
-				permissions.add(key + "::" + permission.toString());
-			}
+		// 	List<String> permissions = new ArrayList<>();
+		// 	for (var key : faction.getSettings().getRanks().keySet()) {
+		// 		var permission = faction.getPermission(key);
+		// 		permissions.add(key + "::" + permission.toString());
+		// 	}
 
-			List<String> flags = new ArrayList<>();
-			for (var key : faction.getSettings().getFlags().keySet()) {
-				flags.add(key + "::" + faction.getSettings().getFlags().get(key).toString());
-			}
+		// 	List<String> flags = new ArrayList<>();
+		// 	for (var key : faction.getSettings().getFlags().keySet()) {
+		// 		flags.add(key + "::" + faction.getSettings().getFlags().get(key).toString());
+		// 	}
 
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".allies",
-					faction.getRelationManager().getAllies());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".enemies",
-					faction.getRelationManager().getEnemies());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".invites",
-					faction.getRelationManager().getInvites());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".allies",
+		// 			faction.getRelationManager().getAllies());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".enemies",
+		// 			faction.getRelationManager().getEnemies());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".invites",
+		// 			faction.getRelationManager().getInvites());
 
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".permanent", faction.isPermanent());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".frozen", faction.isFrozen());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".permanent", faction.isPermanent());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".frozen", faction.isFrozen());
 
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".owner", faction.getOwner().toString());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".claimedChunks", faction.getClaimChunks());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".maxPower",
-					faction.getPowerManager().getMaxPower());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".displayName", faction.getDisplayName());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".description", faction.getDescription());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".motd", faction.getMotd());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".power", faction.getPowerManager().getPower());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".settings.flags", flags);
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".settings.permissions", permissions);
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".members", _members.toArray());
-			factionData.getConfig().set("f." + faction.getRegistryName() + ".banned",
-					Utils.listToStringList(faction.getBannedPlayers()));
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".owner", faction.getOwner().toString());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".claimedChunks", faction.getClaimChunks());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".maxPower",
+		// 			faction.getPowerManager().getMaxPower());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".displayName", faction.getDisplayName());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".description", faction.getDescription());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".motd", faction.getMotd());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".power", faction.getPowerManager().getPower());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".settings.flags", flags);
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".settings.permissions", permissions);
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".members", _members.toArray());
+		// 	factionData.getConfig().set("f." + faction.getRegistryName() + ".banned",
+		// 			Utils.listToStringList(faction.getBannedPlayers()));
 
-			factionData.saveConfig();
-			// for (FactionData dat : Faction.data) {
-			// dat.Save(faction, factionData);
-			// }
-		}
+		// 	factionData.saveConfig();
+		// 	// for (FactionData dat : Faction.data) {
+		// 	// dat.Save(faction, factionData);
+		// 	// }
+		// }
 	}
 
 	public void loadFactions() {
-		var factionData = factionsPlugin.getFactionData();
-		if (factionData.getConfig().getConfigurationSection("f") == null) {
-			return;
-		}
-		for (var key : factionData.getConfig().getConfigurationSection("f").getKeys(false)) {
-			var displayName = ChatColor.translateAlternateColorCodes('&',
-					factionData.getConfig().getString("f." + key + ".displayName"));
+		// var factionData = factionsPlugin.getFactionData();
+		// if (factionData.getConfig().getConfigurationSection("f") == null) {
+		// 	return;
+		// }
+		// for (var key : factionData.getConfig().getConfigurationSection("f").getKeys(false)) {
+		// 	var displayName = ChatColor.translateAlternateColorCodes('&',
+		// 			factionData.getConfig().getString("f." + key + ".displayName"));
 
-			var members = new ArrayList<FactionMember>();
-			List<String> raw = factionData.getConfig().getStringList("f." + key + ".members");
-			for (int i = 0; i < raw.size(); i++) {
-				var rawMember = raw.get(i);
-				members.set(i, FactionMember.fromString(rawMember));
-			}
+		// 	var members = new ArrayList<FactionMember>();
+		// 	List<String> raw = factionData.getConfig().getStringList("f." + key + ".members");
+		// 	for (int i = 0; i < raw.size(); i++) {
+		// 		var rawMember = raw.get(i);
+		// 		members.set(i, FactionMember.fromString(rawMember));
+		// 	}
 
-			List<String> rawFlags = factionData.getConfig().getStringList("f." + key + ".settings.flags");
-			List<Flag> flags = new ArrayList<>();
-			for (String str : rawFlags) {
-				flags.add(Flag.fromString(str));
-			}
+		// 	List<String> rawFlags = factionData.getConfig().getStringList("f." + key + ".settings.flags");
+		// 	List<Flag> flags = new ArrayList<>();
+		// 	for (String str : rawFlags) {
+		// 		flags.add(Flag.fromString(str));
+		// 	}
 
-			var owner = factionData.getConfig().getString("f." + key + ".owner");
-			if (owner == null) {
-				for (var member : members) {
-					if (member.getRank().getRegistryName().equals(OwnerRank.registry)) {
-						owner = member.getUuid().toString();
-					}
-				}
-			}
+		// 	var owner = factionData.getConfig().getString("f." + key + ".owner");
+		// 	if (owner == null) {
+		// 		for (var member : members) {
+		// 			if (member.getRank().getRegistryName().equals(OwnerRank.registry)) {
+		// 				owner = member.getUuid().toString();
+		// 			}
+		// 		}
+		// 	}
 
-			var uuid = UUID.fromString(owner);
-			Faction faction = new Faction(this, displayName);
-			faction.setOwner(uuid);
-			faction.setMembers(members);
-			for (int i = 0; i < flags.size(); i++) {
-				faction.getSettings().getFlags().put(rawFlags.get(i).split("::")[0], flags.get(i));
-			}
+		// 	var uuid = UUID.fromString(owner);
+		// 	Faction faction = new Faction(this, displayName);
+		// 	faction.setOwner(uuid);
+		// 	faction.setMembers(members);
+		// 	for (int i = 0; i < flags.size(); i++) {
+		// 		faction.getSettings().getFlags().put(rawFlags.get(i).split("::")[0], flags.get(i));
+		// 	}
 
-			List<String> rawBanned = factionData.getConfig().getStringList("f." + key + ".banned");
-			List<UUID> bannedPlayers = new ArrayList<>();
+		// 	List<String> rawBanned = factionData.getConfig().getStringList("f." + key + ".banned");
+		// 	List<UUID> bannedPlayers = new ArrayList<>();
 
-			for (String rawBan : rawBanned) {
-				try {
-					rawBan = rawBan.replace("]", "").replace("[", "");
-					bannedPlayers.add(UUID.fromString(rawBan.trim()));
-				} catch (IllegalArgumentException exception) {
-					logger.warning("&cCouldn't load banned");
-				}
-			}
+		// 	for (String rawBan : rawBanned) {
+		// 		try {
+		// 			rawBan = rawBan.replace("]", "").replace("[", "");
+		// 			bannedPlayers.add(UUID.fromString(rawBan.trim()));
+		// 		} catch (IllegalArgumentException exception) {
+		// 			logger.warning("&cCouldn't load banned");
+		// 		}
+		// 	}
 
-			faction.setPowerManager(new PowerManager(faction));
-			faction.getPowerManager().setPower(factionData.getConfig().getInt("f." + key + ".power"));
-			faction.getPowerManager().setMaxPower(factionData.getConfig().getInt("f." + key + ".maxPower"));
-			faction.getPowerManager().startRegenerationThread();
+		// 	faction.setPowerManager(new PowerManager(faction));
+		// 	faction.getPowerManager().setPower(factionData.getConfig().getInt("f." + key + ".power"));
+		// 	faction.getPowerManager().setMaxPower(factionData.getConfig().getInt("f." + key + ".maxPower"));
+		// 	faction.getPowerManager().startRegenerationThread();
 
-			faction.setRelationManager(new RelationManager(faction));
-			faction.getRelationManager()
-					.setAllies((ArrayList<String>) factionData.getConfig().getStringList("f." + key + ".allies"));
-			faction.getRelationManager()
-					.setEnemies((ArrayList<String>) factionData.getConfig().getStringList("f." + key + ".enemies"));
-			faction.getRelationManager()
-					.setInvites((ArrayList<String>) factionData.getConfig().getStringList("f." + key + ".invites"));
+		// 	faction.setRelationManager(new RelationManager(faction));
+		// 	faction.getRelationManager()
+		// 			.setAllies((ArrayList<String>) factionData.getConfig().getStringList("f." + key + ".allies"));
+		// 	faction.getRelationManager()
+		// 			.setEnemies((ArrayList<String>) factionData.getConfig().getStringList("f." + key + ".enemies"));
+		// 	faction.getRelationManager()
+		// 			.setInvites((ArrayList<String>) factionData.getConfig().getStringList("f." + key + ".invites"));
 
-			if (factionData.getConfig().contains("f." + key + ".permanent")) {
-				faction.setPermanent(factionData.getConfig().getBoolean("f." + key + ".permanent"));
-			}
-			if (factionData.getConfig().contains("f." + key + ".frozen")) {
-				faction.setFrozen(factionData.getConfig().getBoolean("f." + key + ".frozen"));
-			}
+		// 	if (factionData.getConfig().contains("f." + key + ".permanent")) {
+		// 		faction.setPermanent(factionData.getConfig().getBoolean("f." + key + ".permanent"));
+		// 	}
+		// 	if (factionData.getConfig().contains("f." + key + ".frozen")) {
+		// 		faction.setFrozen(factionData.getConfig().getBoolean("f." + key + ".frozen"));
+		// 	}
 
-			faction.setClaimChunks(factionData.getConfig().getInt("f." + key + ".claimedChunks"));
-			faction.setBannedPlayers(bannedPlayers);
-			faction.setMotd(factionData.getConfig().getString("f." + key + ".motd"));
-			faction.setDescription(factionData.getConfig().getString("f." + key + ".description"));
-			for (var perm : factionData.getConfig().getStringList("f." + key + ".settings.permissions")) {
-				var perms = perm.split("::");
-				faction.getSettings().getRanks().put(perms[0], FactionRankPermission.fromString(perm));
-			}
+		// 	faction.setClaimChunks(factionData.getConfig().getInt("f." + key + ".claimedChunks"));
+		// 	faction.setBannedPlayers(bannedPlayers);
+		// 	faction.setMotd(factionData.getConfig().getString("f." + key + ".motd"));
+		// 	faction.setDescription(factionData.getConfig().getString("f." + key + ".description"));
+		// 	for (var perm : factionData.getConfig().getStringList("f." + key + ".settings.permissions")) {
+		// 		var perms = perm.split("::");
+		// 		faction.getSettings().getRanks().put(perms[0], FactionRankPermission.fromString(perm));
+		// 	}
 
-			addFaction(faction);
-			// for (FactionData dat : Faction.data) {
-			// dat.Load(faction, data);
-			// }
-		}
+		// 	addFaction(faction);
+		// 	// for (FactionData dat : Faction.data) {
+		// 	// dat.Load(faction, data);
+		// 	// }
+		// }
 	}
 
 	public List<String> getWorlds() {
@@ -325,8 +330,22 @@ public class FactionsHandler {
 		return new NamespacedKey(factionsPlugin, key);
 	}
 
+	public boolean setupEconomy() {
+		if (factionsPlugin.getServer().getPluginManager().getPlugin("Vault") == null) {
+			return false;
+		}
+
+		var rsp = factionsPlugin.getServer().getServicesManager().getRegistration(Economy.class);
+		if (rsp == null) {
+			return false;
+		}
+
+		economy = rsp.getProvider();
+		return economy != null;
+	}
+
 	public Economy getEconomy() {
-		return factionsPlugin.getEconomy();
+		return economy;
 	}
 
 	public List<Faction> getFactions() {

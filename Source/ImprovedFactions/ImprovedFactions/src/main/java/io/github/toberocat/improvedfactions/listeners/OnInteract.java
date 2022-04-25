@@ -1,7 +1,7 @@
 package io.github.toberocat.improvedfactions.listeners;
 
 import io.github.toberocat.improvedfactions.FactionsHandler;
-import io.github.toberocat.improvedfactions.factions.Faction;
+import io.github.toberocat.improvedfactions.data.Permissions;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -39,7 +39,7 @@ public class OnInteract implements Listener {
         }
         if (playerFaction != null && !chunkFaction.getRegistryName().equals(playerFaction.getRegistryName())) {
             event.setCancelled(true);
-        } else if (!chunkFaction.hasPermission(event.getPlayer(), Faction.BUILD_PERMISSION)) {
+        } else if (!chunkFaction.hasPermission(event.getPlayer(), Permissions.BUILD_PERMISSION)) {
             event.setCancelled(true);
         }
     }

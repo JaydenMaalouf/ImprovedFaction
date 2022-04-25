@@ -2,7 +2,6 @@ package io.github.toberocat.improvedfactions.tab;
 
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.FactionCommand;
-import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;

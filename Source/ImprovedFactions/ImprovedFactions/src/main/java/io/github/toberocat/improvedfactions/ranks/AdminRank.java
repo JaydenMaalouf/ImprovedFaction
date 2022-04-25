@@ -1,7 +1,6 @@
 package io.github.toberocat.improvedfactions.ranks;
 
 import io.github.toberocat.improvedfactions.language.Language;
-import io.github.toberocat.improvedfactions.utility.Utils;
 import org.bukkit.inventory.ItemStack;
 
 public class AdminRank extends Rank{
@@ -18,10 +17,5 @@ public class AdminRank extends Rank{
             return Language.format("&8to delete the faction");
         }
         return "";
-    }
-
-    @Override
-    public ItemStack getItem() {
-        return Utils.getSkull("http://textures.minecraft.net/texture/9631597dce4e4051e8d5a543641966ab54fbf25a0ed6047f11e6140d88bf48f", 1, getDisplayName());
     }
 }

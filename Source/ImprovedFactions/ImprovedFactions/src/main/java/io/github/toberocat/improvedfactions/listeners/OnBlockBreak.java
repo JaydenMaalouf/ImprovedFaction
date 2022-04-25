@@ -1,7 +1,7 @@
 package io.github.toberocat.improvedfactions.listeners;
 
 import io.github.toberocat.improvedfactions.FactionsHandler;
-import io.github.toberocat.improvedfactions.factions.Faction;
+import io.github.toberocat.improvedfactions.data.Permissions;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -31,7 +31,7 @@ public class OnBlockBreak implements Listener {
 
         if (playerData.getPlayerFaction() == null) {
             event.setCancelled(true);
-        } else if (!chunkFaction.hasPermission(event.getPlayer(), Faction.BREAK_PERMISSION)) {
+        } else if (!chunkFaction.hasPermission(event.getPlayer(), Permissions.BREAK_PERMISSION)) {
             event.setCancelled(true);
         }
     }

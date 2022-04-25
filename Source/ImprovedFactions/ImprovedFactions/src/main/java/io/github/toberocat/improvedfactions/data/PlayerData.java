@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Chunk;
-import org.bukkit.Location;
 
 public class PlayerData {
     private Faction playerFaction;

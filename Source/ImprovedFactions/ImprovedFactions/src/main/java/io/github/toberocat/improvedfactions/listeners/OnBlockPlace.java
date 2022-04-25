@@ -2,7 +2,7 @@ package io.github.toberocat.improvedfactions.listeners;
 
 import io.github.toberocat.improvedfactions.BlockWatcher;
 import io.github.toberocat.improvedfactions.FactionsHandler;
-import io.github.toberocat.improvedfactions.factions.Faction;
+import io.github.toberocat.improvedfactions.data.Permissions;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -36,7 +36,7 @@ public class OnBlockPlace implements Listener {
 
         if (playerData.getPlayerFaction() == null) {
             event.setCancelled(true);
-        } else if (!chunkFaction.hasPermission(event.getPlayer(), Faction.BUILD_PERMISSION)) {
+        } else if (!chunkFaction.hasPermission(event.getPlayer(), Permissions.BUILD_PERMISSION)) {
             event.setCancelled(true);
         }
     }

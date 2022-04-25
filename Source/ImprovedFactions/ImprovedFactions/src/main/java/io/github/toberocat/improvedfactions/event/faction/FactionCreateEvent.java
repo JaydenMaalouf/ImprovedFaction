@@ -7,13 +7,11 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 public class FactionCreateEvent extends Event implements Cancellable {
-
-    private boolean isCancelled = false;
-    private static final HandlerList HANDLERS = new HandlerList();
-
     private Faction faction;
     private Player player;
-    private String cancelMessage;
+
+    private boolean isCancelled = false;
+    private String cancelMessage = "";
 
     public FactionCreateEvent(Faction faction, Player player) {
         this.faction = faction;
@@ -22,11 +20,7 @@ public class FactionCreateEvent extends Event implements Cancellable {
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS;
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
+        return null;
     }
 
     @Override

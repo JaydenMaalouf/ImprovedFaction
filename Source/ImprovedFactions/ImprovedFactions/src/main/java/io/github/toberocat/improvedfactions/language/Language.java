@@ -96,8 +96,9 @@ public class Language {
     }
 
     public static String getPrefix() {
-        return format(ImprovedFactionsMain.getPlugin()
-                .getLanguageData().getConfig().getString("prefix") + " §f");
+        return "Plugin: ";
+        // return format(ImprovedFactionsMain.getPlugin()
+        //         .getLanguageData().getConfig().getString("prefix") + " §f");
     }
 
     public static String format(String msg) {
