@@ -2,13 +2,9 @@ package io.github.toberocat.improvedfactions.commands.factionCommands;
 
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
-import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.language.LangMessage;
-import io.github.toberocat.improvedfactions.language.Language;
-import io.github.toberocat.improvedfactions.listeners.OnChunkEntered;
-import io.github.toberocat.improvedfactions.utility.ChunkUtils;
+import io.github.toberocat.improvedfactions.listeners.OnPlayerMove;
 import io.github.toberocat.improvedfactions.utility.TCallback;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
@@ -17,9 +13,7 @@ import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class MapSubCommand extends SubCommand {
     public MapSubCommand(FactionsHandler factionsHandler) {
@@ -38,7 +32,7 @@ public class MapSubCommand extends SubCommand {
             // new OnChunkEntered(factionsHandler).sendMap(player);
             // }
         } else {
-            new OnChunkEntered(factionsHandler).sendMap(player);
+            new OnPlayerMove(factionsHandler).sendMap(player);
         }
     }
 

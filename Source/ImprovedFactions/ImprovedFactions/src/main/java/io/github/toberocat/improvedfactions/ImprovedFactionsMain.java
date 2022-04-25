@@ -31,6 +31,7 @@ import io.github.toberocat.improvedfactions.utility.configs.DataManager;
 import io.github.toberocat.improvedfactions.utility.configs.JsonUtility;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -327,22 +328,6 @@ public final class ImprovedFactionsMain extends JavaPlugin {
 			logger.log(Level.WARNING, "Instance of extConfigDaat is null");
 		}
 		return extensionConfigData;
-	}
-
-	public void addPlayerData(Player player) {
-		var container = player.getLocation().getChunk().getPersistentDataContainer();
-
-		PlayerData data = new PlayerData();
-
-		Debugger.LogInfo(player.getLocale());
-
-		data.playerFaction = getFaction(player);
-
-		data.chunkData.isInClaimedChunk = container.has(ChunkUtils.FACTION_CLAIMED_KEY, PersistentDataType.STRING);
-		if (data.chunkData.isInClaimedChunk)
-			data.chunkData.factionRegistry = container.get(ChunkUtils.FACTION_CLAIMED_KEY, PersistentDataType.STRING);
-
-		playerData.put(player.getUniqueId(), data);
 	}
 
 	public void reloadConfigs() {

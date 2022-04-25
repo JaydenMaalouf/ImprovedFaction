@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -45,12 +46,16 @@ public class FactionsHandler {
 	private Logger logger;
 	private ImprovedFactionsMain factionsPlugin;
 
+	public static NamespacedKey FACTION_CLAIMED_KEY;
+
 	public FactionsHandler(ImprovedFactionsMain factionsPlugin) {
 		this.factionsPlugin = factionsPlugin;
 		this.logger = factionsPlugin.getLogger();
+
+		FACTION_CLAIMED_KEY = new NamespacedKey(factionsPlugin, "faction-claimed");
 	}
 
-	public ImprovedFactionsMain getPlugin(){
+	public ImprovedFactionsMain getPlugin() {
 		return factionsPlugin;
 	}
 
@@ -277,6 +282,10 @@ public class FactionsHandler {
 		return getConfig().getStringList("general.worlds");
 	}
 
+	public boolean hasWorld(World world){
+		return getWorlds().contains(world.getName());
+	}
+
 	public boolean removeFaction(Faction faction) {
 		return factions.remove(faction);
 	}
@@ -304,7 +313,7 @@ public class FactionsHandler {
 		factions.add(faction);
 	}
 
-	public String getVersion(){
+	public String getVersion() {
 		return factionsPlugin.getVersion();
 	}
 
@@ -323,15 +332,15 @@ public class FactionsHandler {
 	public List<Faction> getFactions() {
 		return factions;
 	}
-	
+
 	public List<String> getFactionNames() {
 		return getFactions().stream().map(Faction::getRegistryName).toList();
 	}
-	
+
 	public List<String> getOnlinePlayerNames() {
 		return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
 	}
-	
+
 	public List<String> getFactionDisplayNames() {
 		return getFactions().stream().map(Faction::getDisplayName).toList();
 	}
@@ -366,7 +375,6 @@ public class FactionsHandler {
 			return null;
 		}
 
-		var FACTION_CLAIMED_KEY = new NamespacedKey(factionsPlugin, "faction-claimed");
 		var container = chunk.getPersistentDataContainer();
 		if (container.has(FACTION_CLAIMED_KEY, PersistentDataType.STRING)) {
 			var factionRegistry = container.get(FACTION_CLAIMED_KEY, PersistentDataType.STRING);
@@ -374,5 +382,15 @@ public class FactionsHandler {
 		}
 
 		return null;
+	}
+
+	public void addPlayerData(Player player) {
+		var data = new PlayerData();
+		data.setPlayerFaction(getFaction(player));
+		playerData.put(player.getUniqueId(), data);
+	}
+
+	public void removePlayerData(Player player) {
+		playerData.remove(player.getUniqueId());
 	}
 }

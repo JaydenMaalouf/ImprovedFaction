@@ -1,11 +1,6 @@
 package io.github.toberocat.improvedfactions.listeners;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
-import io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands.ByPassSubCommand;
-import io.github.toberocat.improvedfactions.data.PlayerData;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
-import io.github.toberocat.improvedfactions.utility.ChunkUtils;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,64 +9,86 @@ import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 public class OnEntityInteract implements Listener {
+    private FactionsHandler factionsHandler;
+
+    public OnEntityInteract(FactionsHandler factionsHandler) {
+        this.factionsHandler = factionsHandler;
+    }
 
     @EventHandler
     public void EntityInteract(PlayerInteractEntityEvent event) {
-        if (!ImprovedFactionsMain.getPlugin().getConfig().getBoolean("general.allowClaimProtection")) return;
-        PlayerData playerData = ImprovedFactionsMain.playerData.get(event.getPlayer().getUniqueId());
-        if (ByPassSubCommand.BYPASS.contains(event.getPlayer().getUniqueId())) return;
+        if (!factionsHandler.getConfig().getBoolean("general.allowClaimProtection")) {
+            return;
+        }
 
-        Faction claimFaction = ChunkUtils.GetFactionClaimedChunk(event.getRightClicked().getLocation().getChunk());
-            if (claimFaction == null)
-                return;
+        var playerData = factionsHandler.getPlayerData(event.getPlayer());
+        if (playerData.getBypass()) {
+            return;
+        }
 
-            if (playerData.playerFaction == null){
-                event.setCancelled(true);
-                return;
-            }
+        var chunkFaction = factionsHandler.getFaction(event.getRightClicked().getLocation().getChunk());
+        if (chunkFaction == null) {
+            return;
+        }
 
-            if (!claimFaction.getRegistryName()
-                    .equals(playerData.playerFaction.getRegistryName())) {
-                event.setCancelled(true);
-            }
+        var playerFaction = playerData.getPlayerFaction();
+        if (playerFaction == null) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (!chunkFaction.getRegistryName().equals(playerFaction.getRegistryName())) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
     public void HangingBreak(HangingBreakByEntityEvent event) {
-        if (event.getRemover() instanceof Player) {
-            if (!ImprovedFactionsMain.getPlugin().getConfig().getBoolean("general.allowClaimProtection")) return;
-            if (ByPassSubCommand.BYPASS.contains(event.getRemover().getUniqueId())) return;
+        if (event.getRemover() instanceof Player removerPlayer) {
+            if (!factionsHandler.getConfig().getBoolean("general.allowClaimProtection")) {
+                return;
+            }
 
-            PlayerData playerData = ImprovedFactionsMain.playerData.get(event.getRemover().getUniqueId());
+            var removerPlayerData = factionsHandler.getPlayerData(removerPlayer);
+            if (removerPlayerData.getBypass()) {
+                return;
+            }
 
-            Faction claimFaction = ChunkUtils.GetFactionClaimedChunk(event.getEntity().getLocation().getChunk());
-                if (claimFaction == null)
-                    return;
+            var chunkFaction = factionsHandler.getFaction(event.getEntity().getLocation().getChunk());
+            if (chunkFaction == null) {
+                return;
+            }
 
-                if (!claimFaction.getRegistryName()
-                        .equals(playerData.playerFaction.getRegistryName())) {
-                    event.setCancelled(true);
-                }
+            if (!chunkFaction.getRegistryName().equals(removerPlayerData.getPlayerFaction().getRegistryName())) {
+                event.setCancelled(true);
+            }
         }
     }
 
-
     @EventHandler
     public void ArmorStandManipulate(PlayerArmorStandManipulateEvent event) {
-        PlayerData playerData = ImprovedFactionsMain.playerData.get(event.getPlayer().getUniqueId());
+        if (!factionsHandler.getConfig().getBoolean("general.allowClaimProtection")) {
+            return;
+        }
 
-        Faction claimFaction = ChunkUtils.GetFactionClaimedChunk(event.getRightClicked().getLocation().getChunk());
-            if (claimFaction == null)
-                return;
+        var playerData = factionsHandler.getPlayerData(event.getPlayer());
+        if (playerData.getBypass()) {
+            return;
+        }
 
-            if (FactionUtils.getFaction(event.getPlayer()) == null) {
-                event.setCancelled(true);
-                return;
-            }
+        var chunkFaction = factionsHandler.getFaction(event.getRightClicked().getLocation().getChunk());
+        if (chunkFaction == null) {
+            return;
+        }
 
-            if (!claimFaction.getRegistryName()
-                    .equals(playerData.playerFaction.getRegistryName())) {
-                event.setCancelled(true);
-            }
+        var playerFaction = playerData.getPlayerFaction();
+        if (playerFaction == null) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (!chunkFaction.getRegistryName().equals(playerFaction.getRegistryName())) {
+            event.setCancelled(true);
+        }
     }
 }

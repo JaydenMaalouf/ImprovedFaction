@@ -15,24 +15,26 @@ import java.util.List;
 
 public class FactionCommandTab implements TabCompleter {
 
-    private FactionsHandler _factionsHandler;
-    public FactionCommandTab(FactionsHandler factionsHandler){
-        _factionsHandler = factionsHandler;
+    private FactionsHandler factionsHandler;
+
+    public FactionCommandTab(FactionsHandler factionsHandler) {
+        this.factionsHandler = factionsHandler;
     }
 
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
-        if (sender instanceof Player player)
-        {
-            if (!player.isOp() && !_factionsHandler.getWorlds().contains(player.getWorld().getName())) {
+        if (sender instanceof Player player) {
+            if (!player.isOp() && !factionsHandler.hasWorld(player.getWorld())) {
                 return null;
             }
-            //Display results
-    
-            var arguments = SubCommand.CallSubCommandsTab(FactionCommand.subCommands, player, args);    
-            if (arguments == null) return null;
-    
+            // Display results
+
+            var factionCommand = new FactionCommand(factionsHandler);
+            var arguments = factionCommand.CallSubCommandsTab(player, args);
+            if (arguments == null) {
+                return null;
+            }
             var results = new ArrayList<String>();
             for (var arg : args) {
                 for (var a : arguments) {
@@ -41,7 +43,7 @@ public class FactionCommandTab implements TabCompleter {
                     }
                 }
             }
-    
+
             return results;
         }
 

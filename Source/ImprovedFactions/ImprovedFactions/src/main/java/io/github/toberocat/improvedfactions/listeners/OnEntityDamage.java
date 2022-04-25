@@ -1,43 +1,41 @@
 package io.github.toberocat.improvedfactions.listeners;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
-import io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands.ByPassSubCommand;
-import io.github.toberocat.improvedfactions.data.PlayerData;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.language.Language;
-import io.github.toberocat.improvedfactions.utility.ChunkUtils;
-import io.github.toberocat.improvedfactions.utility.callbacks.Callback;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class OnEntityDamage implements Listener {
+    private FactionsHandler factionsHandler;
 
-    public static List<Callback> callbacks = new ArrayList<>();
+    public OnEntityDamage(FactionsHandler factionsHandler) {
+        this.factionsHandler = factionsHandler;
+    }
 
     @EventHandler
     public void entityDamage(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player) {
-            if (!ImprovedFactionsMain.getPlugin().getConfig().getBoolean("general.allowClaimProtection")) return;
-            Player attacker = (Player) event.getDamager();
-            if (ByPassSubCommand.BYPASS.contains(attacker.getUniqueId())) return;
+        if (event.getDamager() instanceof Player attacker) {
+            if (!factionsHandler.getConfig().getBoolean("general.allowClaimProtection")) {
+                return;
+            }
 
-            PlayerData attackerData = ImprovedFactionsMain.playerData.get(attacker.getUniqueId());
-            if (event.getEntity() instanceof Player) {
-                Player target = (Player) event.getEntity();
-                PlayerData targetData = ImprovedFactionsMain.playerData.get(target.getUniqueId());
+            var attackerPlayerData = factionsHandler.getPlayerData(attacker);
+            if (attackerPlayerData.getBypass()) {
+                return;
+            }
 
-                if (targetData.playerFaction != null && attackerData != null) {
-                    if (targetData.playerFaction.getRegistryName().equals(attackerData.playerFaction.getRegistryName())) {
+            if (event.getEntity() instanceof Player damagedPlayer) {
+                var damagedPlayerData = factionsHandler.getPlayerData(damagedPlayer);
+
+                if (attackerPlayerData != null && damagedPlayerData != null) {
+                    if (damagedPlayerData.getPlayerFaction().getRegistryName()
+                            .equals(attackerPlayerData.getPlayerFaction().getRegistryName())) {
                         event.setCancelled(true);
                         attacker.sendMessage(Language.getPrefix() + "§cCannot attack your faction member");
-                    } else if (targetData.playerFaction.getRelationManager().getAllies()
-                            .contains(attackerData.playerFaction.getRegistryName())) {
+                    } else if (damagedPlayerData.getPlayerFaction().getRelationManager()
+                            .isAllies(attackerPlayerData.getPlayerFaction())) {
                         event.setCancelled(true);
                         attacker.sendMessage(Language.getPrefix() + "§cCannot attack your faction ally member");
                     }

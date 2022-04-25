@@ -1,37 +1,44 @@
 package io.github.toberocat.improvedfactions.listeners;
 
-import io.github.toberocat.improvedfactions.commands.factionCommands.adminSubCommands.ByPassSubCommand;
-import io.github.toberocat.improvedfactions.factions.Faction;
-import io.github.toberocat.improvedfactions.factions.FactionMember;
-import io.github.toberocat.improvedfactions.factions.FactionUtils;
-import io.github.toberocat.improvedfactions.utility.ChunkUtils;
-import org.bukkit.block.Block;
+import io.github.toberocat.improvedfactions.BlockWatcher;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
-import java.util.UUID;
-
 public class BlockExplosionListener implements Listener {
+
+    private FactionsHandler factionsHandler;
+    private BlockWatcher blockWatcher;
+    public BlockExplosionListener(FactionsHandler factionsHandler, BlockWatcher blockWatcher) {
+        this.factionsHandler = factionsHandler;
+        this.blockWatcher = blockWatcher;
+    }
 
     @EventHandler
     public void EntityExplode(EntityExplodeEvent event) {
-        UUID explosionPlaces = OnBlockPlace.TNT_PLACES.get(event.getEntity().getLocation());
-        if (ByPassSubCommand.BYPASS.contains(explosionPlaces)) return;
-        String registry = null;
-        if (explosionPlaces != null) {
-            Faction f = FactionUtils.getFaction(explosionPlaces);
-            registry = f.getRegistryName();
+        var explosionCauser = blockWatcher.getBlockOwner(event.getEntity().getLocation());
+        if (explosionCauser == null){
+            return;
         }
-        for (Block block : event.blockList()) {
-            Faction bFaction = ChunkUtils.GetFactionClaimedChunk(block.getChunk());
-            if (registry != null && bFaction != null && bFaction.getRelationManager().getEnemies().contains(registry)) {
+
+        var explosionCauserData = factionsHandler.getPlayerData(explosionCauser);
+        if (explosionCauserData.getBypass()) {
+            return;
+        }
+        
+        var explosionCauserFaction = factionsHandler.getFaction(explosionCauser);
+        if (explosionCauserFaction == null){
+            return;
+        }
+
+        for (var block : event.blockList()) {
+            var explosionFaction = factionsHandler.getFaction(block.getChunk());
+            if (explosionFaction.getRelationManager().isEnemies(explosionCauserFaction)) {
                 event.setCancelled(false);
             }
-            if (bFaction != null) {
-                event.setCancelled(true);
-                return;
-            }
+            
+            event.setCancelled(true);
         }
     }
 }

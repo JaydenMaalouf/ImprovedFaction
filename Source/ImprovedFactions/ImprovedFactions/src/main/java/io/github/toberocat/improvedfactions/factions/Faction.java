@@ -1,5 +1,7 @@
 package io.github.toberocat.improvedfactions.factions;
 
+import io.github.toberocat.improvedfactions.event.chunk.ChunkClaimEvent;
+import io.github.toberocat.improvedfactions.event.chunk.ChunkUnclaimEvent;
 import io.github.toberocat.improvedfactions.event.faction.FactionJoinEvent;
 import io.github.toberocat.improvedfactions.event.faction.FactionLeaveEvent;
 import io.github.toberocat.improvedfactions.factions.economy.Bank;
@@ -22,6 +24,7 @@ import io.github.toberocat.improvedfactions.reports.Report;
 
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 
@@ -291,7 +294,7 @@ public class Faction {
             return;
         }
 
-        ChunkUtils.ClaimChunk(chunk, this, result -> {
+        internalClaimChunk(chunk, result -> {
             if (result.getClaimStatus() == ClaimStatus.Status.SUCCESS) {
                 powerManager.claimChunk();
                 claimedChunks++;
@@ -301,13 +304,143 @@ public class Faction {
     }
 
     public void unclaimChunk(Chunk chunk, TCallback<ClaimStatus> callback) {
-        ChunkUtils.UnClaimChunk(chunk, this, result -> {
+        internalUnclaimChunk(chunk, result -> {
             if (result.getClaimStatus() == ClaimStatus.Status.SUCCESS) {
                 powerManager.unclaimChunk();
                 claimedChunks--;
             }
             callback.Callback(result);
         });
+    }
+
+    private void internalUnclaimChunk(Chunk chunk, TCallback<ClaimStatus> callback) {
+        var container = chunk.getPersistentDataContainer();
+
+        /*
+         * if
+         * (!ImprovedFactionsMain.getPlugin().getConfig().getStringList("general.worlds"
+         * ).contains(chunk.getWorld().getName())) {
+         * callback.Callback(new ClaimStatus(ClaimStatus.Status.NOT_ALLOWED_WORLD,
+         * null));
+         * return;
+         * }
+         */
+
+        if (!container.has(FactionsHandler.FACTION_CLAIMED_KEY, PersistentDataType.STRING)) {
+            callback.Callback(new ClaimStatus(ClaimStatus.Status.NOT_CLAIMED, null));
+            return;
+        }
+
+        var chunkFaction = factionsHandler.getFaction(chunk);
+        if (chunkFaction != this) {
+            callback.Callback(new ClaimStatus(ClaimStatus.Status.NOT_PROPERTY, null));
+        } else if (factionsHandler.getConfig().getBoolean("general.connectedChunks")) {
+            var openList = new ArrayList<Vector2>();
+            var closedList = new ArrayList<Vector2>();
+
+            for (var neighbourChunk : ChunkUtils.GetNeighbourChunks(chunk)) {
+                var neighbourChunkFaction = factionsHandler.getFaction(neighbourChunk);
+                if (neighbourChunkFaction == this) {
+                    openList.add(new Vector2(neighbourChunk.getX(), neighbourChunk.getZ()));
+                }
+            }
+
+            while (!openList.isEmpty()) {
+                var neighbours = ChunkUtils.GetNeighbourChunks(openList.get(0));
+                closedList.add(openList.get(0));
+                openList.remove(0);
+                for (Vector2 neighbour : neighbours) {
+                    boolean cont = false;
+                    for (Vector2 vec : closedList) {
+                        if (neighbour.getX() == vec.getX() && neighbour.getY() == vec.getY()) {
+                            cont = true;
+                            break;
+                        }
+                    }
+                    if (cont)
+                        continue;
+                    if (openList.contains(neighbour))
+                        continue;
+                    var claimFaction = factionsHandler.getFaction(
+                            chunk.getWorld().getChunkAt((int) neighbour.getX(), (int) neighbour.getY()));
+                    if (claimFaction == this
+                            && chunk != chunk.getWorld().getChunkAt((int) neighbour.getX(), (int) neighbour.getY())) {
+                        // The chunk is wilderness and is not part of another faction
+                        openList.add(neighbour);
+                    }
+                }
+            }
+
+            if (getClaimedChunks() != closedList.size() + 1) {
+                callback.Callback(new ClaimStatus(ClaimStatus.Status.NEED_CONNECTION, this));
+            }
+        }
+
+        container.remove(FactionsHandler.FACTION_CLAIMED_KEY);
+        Bukkit.getPluginManager().callEvent(new ChunkUnclaimEvent(chunk, this));
+        callback.Callback(new ClaimStatus(ClaimStatus.Status.SUCCESS, null));
+    }
+
+    private void internalClaimChunk(Chunk chunk, TCallback<ClaimStatus> callback) {
+        var container = chunk.getPersistentDataContainer();
+
+        var chunkFaction = factionsHandler.getFaction(chunk);
+        if (factionsHandler.getConfig().getBoolean("general.connectedChunks")) {
+            var connected = false;
+            var neighbouringChunks = ChunkUtils.GetNeighbourChunks(chunk);
+            for (var neighbourChunk : neighbouringChunks) {
+                var neighbourChunkFaction = factionsHandler.getFaction(neighbourChunk);
+                if (chunkFaction == neighbourChunkFaction) {
+                    connected = true;
+                }
+            }
+
+            if (connected == false) {
+                callback.Callback(new ClaimStatus(ClaimStatus.Status.NEED_CONNECTION, this));
+                return;
+            }
+        }
+
+        if (!getPowerManager().canClaimChunk()) {
+            callback.Callback(new ClaimStatus(ClaimStatus.Status.NOT_CLAIMED, chunkFaction));
+            return;
+        }
+
+        if (chunkFaction != this) {
+            if (!canOverclaim(chunk)) {
+                callback.Callback(new ClaimStatus(ClaimStatus.Status.ALREADY_CLAIMED, chunkFaction));
+                return;
+            }
+
+            for (var player : chunkFaction.getPlayersOnline()) {
+                player.sendMessage(Language.getPrefix() +
+                        Language.format("&6&lWarning: &e" +
+                                this.getDisplayName() + "&f claimed a chunk from your land!"));
+            }
+        }
+
+        getPowerManager().claimChunk();
+        container.set(FactionsHandler.FACTION_CLAIMED_KEY, PersistentDataType.STRING, getRegistryName());
+        Bukkit.getPluginManager().callEvent(new ChunkClaimEvent(chunk, this));
+        callback.Callback(new ClaimStatus(ClaimStatus.Status.SUCCESS, this));
+    }
+
+    private boolean canOverclaim(Chunk chunk) {
+        var chunkFaction = factionsHandler.getFaction(chunk);
+        if (chunkFaction == null) {
+            return true;
+        }
+        if (chunkFaction.getRegistryName().equals(this.getRegistryName())) {
+            return false;
+        }
+
+        if (chunkFaction.getPowerManager().getPower() >= chunkFaction.getPowerManager().getPower()) {
+            return false;
+        }
+
+        // if (!isCorner(chunk, wantToClaimFaction.getRegistryName()))
+        // return false;
+        return true;
     }
 
     public boolean deleteFaction() {
@@ -563,11 +696,11 @@ public class Faction {
         return reports.size();
     }
 
-    public boolean isOpen(){
+    public boolean isOpen() {
         return isOpen;
     }
 
-    public void setOpen(boolean open){
+    public void setOpen(boolean open) {
         this.isOpen = open;
     }
 }

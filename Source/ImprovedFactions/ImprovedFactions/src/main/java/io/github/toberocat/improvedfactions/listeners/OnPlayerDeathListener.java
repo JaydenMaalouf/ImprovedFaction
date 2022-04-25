@@ -1,19 +1,29 @@
 package io.github.toberocat.improvedfactions.listeners;
 
-import io.github.toberocat.improvedfactions.ImprovedFactionsMain;
-import io.github.toberocat.improvedfactions.data.PlayerData;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 public class OnPlayerDeathListener implements Listener {
+    private FactionsHandler factionsHandler;
+
+    public OnPlayerDeathListener(FactionsHandler factionsHandler) {
+        this.factionsHandler = factionsHandler;
+    }
 
     @EventHandler
     public void OnDeath(PlayerDeathEvent event) {
-        PlayerData playerData = ImprovedFactionsMain.playerData.get(event.getEntity().getUniqueId());
+        var playerData = factionsHandler.getPlayerData(event.getEntity());
+        if (playerData == null) {
+            return;
+        }
 
-        if (playerData.playerFaction == null) return;
+        var playerFaction = playerData.getPlayerFaction();
+        if (playerFaction == null) {
+            return;
+        }
 
-        playerData.playerFaction.getPowerManager().playerDeath();
+        playerFaction.getPowerManager().playerDeath();
     }
 }

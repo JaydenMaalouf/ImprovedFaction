@@ -5,12 +5,17 @@ import io.github.toberocat.improvedfactions.factions.Faction;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+
 public class PlayerData {
     private Faction playerFaction;
     private boolean autoClaim;
     private boolean autoUnclaim;
     private boolean bypass;
     private List<String> invitations;
+    private Chunk currentChunk;
+    private Chunk previousChunk;
 
     public PlayerData() {
         autoClaim = false;
@@ -66,5 +71,24 @@ public class PlayerData {
 
     public void setBypass(boolean bypass) {
         this.bypass = bypass;
+    }
+
+    public boolean setChunk(Chunk chunk) {
+        if (currentChunk == chunk){
+            return false;
+        }
+
+        previousChunk = currentChunk;
+        currentChunk = chunk;
+
+        return true;
+    }
+
+    public Chunk getCurrentChunk() {
+        return currentChunk;
+    }
+
+    public Chunk getPreviousChunk() {
+        return previousChunk;
     }
 }
