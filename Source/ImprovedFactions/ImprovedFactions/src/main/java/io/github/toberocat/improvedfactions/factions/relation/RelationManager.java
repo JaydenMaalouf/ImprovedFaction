@@ -1,29 +1,38 @@
 package io.github.toberocat.improvedfactions.factions.relation;
 
+import io.github.toberocat.improvedfactions.BaseManager;
+import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-public class RelationManager {
-    private Faction faction;
+public class RelationManager extends BaseManager {
 
-    private ArrayList<String> allies;
-    private ArrayList<String> enemies;
-    private ArrayList<String> invites;
+    private List<String> allies;
+    private List<String> enemies;
+    private List<String> invites;
 
-    public RelationManager(Faction faction) {
+    public RelationManager(Faction faction, FactionsHandler factionsHandler) {
+        super("relations", faction, factionsHandler);
         this.faction = faction;
         this.allies = new ArrayList<>();
         this.enemies = new ArrayList<>();
         this.invites = new ArrayList<>();
+
+        this.factionsHandler = factionsHandler;
     }
 
     public void sendInvite(Faction faction) {
-        invites.add(faction.getRegistryName());
+        faction.getRelationManager().addInvite(this.faction);
         new Thread(() -> {
-            for (var member : this.faction.getOnlineMembers()) {
+            for (var member : faction.getOnlineMembers()) {
                 if (member.getRank().isAdmin()) {
                     Bukkit.getPlayer(member.getUuid()).sendMessage(Language.getPrefix() +
                             Language.format("&e" + faction.getDisplayName()
@@ -31,6 +40,10 @@ public class RelationManager {
                 }
             }
         }).start();
+    }
+
+    public void addInvite(Faction faction) {
+        invites.add(faction.getRegistryName());
     }
 
     public void removeInvite(Faction faction) {
@@ -84,11 +97,11 @@ public class RelationManager {
         this.faction = faction;
     }
 
-    public ArrayList<String> getAllies() {
+    public List<String> getAllies() {
         return allies;
     }
 
-    public boolean isAllies(Faction faction){
+    public boolean isAllies(Faction faction) {
         return allies.contains(faction.getRegistryName());
     }
 
@@ -96,11 +109,11 @@ public class RelationManager {
         this.allies = allies;
     }
 
-    public ArrayList<String> getEnemies() {
+    public List<String> getEnemies() {
         return enemies;
     }
 
-    public boolean isEnemies(Faction faction){
+    public boolean isEnemies(Faction faction) {
         return enemies.contains(faction.getRegistryName());
     }
 
@@ -108,7 +121,7 @@ public class RelationManager {
         this.enemies = enemies;
     }
 
-    public ArrayList<String> getInvites() {
+    public List<String> getInvites() {
         return invites;
     }
 
@@ -129,5 +142,22 @@ public class RelationManager {
         makeAllies(inviteeFaction);
         invites.remove(inviteeFaction.getRegistryName());
         return true;
+    }
+
+    @Override
+    public void save() throws IOException {
+        var config = new YamlConfiguration();
+        config.set("allies", allies);
+        config.set("enemies", enemies);
+        config.set("invites", invites);
+        super.internalSave(config);
+    }
+
+    @Override
+    public void load() throws FileNotFoundException, IOException, InvalidConfigurationException {
+        var config = super.internalLoad();
+        allies = config.getStringList("allies");
+        enemies = config.getStringList("enemies");
+        invites = config.getStringList("invites");
     }
 }

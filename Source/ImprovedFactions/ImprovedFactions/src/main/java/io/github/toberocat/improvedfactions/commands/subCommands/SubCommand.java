@@ -21,9 +21,9 @@ public abstract class SubCommand {
     protected final String description;
     private SubCommand lastSubCommand;
 
-    protected static List<SubCommand> subCommands = new ArrayList<>();
+    protected List<SubCommand> subCommands = new ArrayList<>();
 
-    public static void AddSubCommand(SubCommand command) {
+    public void addSubCommand(SubCommand command) {
         subCommands.add(command);
     }
 
@@ -126,7 +126,7 @@ public abstract class SubCommand {
         if (args.length == 0) return false;
         for (SubCommand command : subCommands) {
             if (args[0].equalsIgnoreCase(command.getSubCommand())) {// || command.getAliases().contains(args[0])) {
-                String[] newArguments = Arrays.copyOfRange(args, 1, args.length);
+                var newArguments = Arrays.copyOfRange(args, 1, args.length);
                 command.CallSubCommand(player, newArguments);
                 return true;
             }

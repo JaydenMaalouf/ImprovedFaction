@@ -1,8 +1,19 @@
 package io.github.toberocat.improvedfactions.commands;
 
 import io.github.toberocat.improvedfactions.commands.admin.*;
-import io.github.toberocat.improvedfactions.commands.factionCommands.*;
-import io.github.toberocat.improvedfactions.commands.factionCommands.relations.*;
+import io.github.toberocat.improvedfactions.commands.faction.owner.BanSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.owner.DeleteSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.owner.InviteAcceptSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.owner.InviteSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.owner.KickSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.owner.SetRulesSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.owner.UnbanSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.power.LeftPowerSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.power.PowerSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.*;
+import io.github.toberocat.improvedfactions.commands.faction.claim.ClaimSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.claim.UnclaimSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.relations.*;
 import io.github.toberocat.improvedfactions.language.LangMessage;
 import io.github.toberocat.improvedfactions.language.Language;
 import io.github.toberocat.improvedfactions.FactionsHandler;
@@ -18,42 +29,43 @@ public class FactionCommand extends SubCommand implements CommandExecutor {
 
     public FactionCommand(FactionsHandler factionsHandler) {
         super(factionsHandler, "", "");
-        AddSubCommand(new HelpSubCommand(factionsHandler));
-        AddSubCommand(new CreateSubCommand(factionsHandler));
-        AddSubCommand(new LeaveSubCommand(factionsHandler));
-        AddSubCommand(new JoinSubCommand(factionsHandler));
-        AddSubCommand(new SaveSubCommand(factionsHandler));
-        AddSubCommand(new DeleteSubCommand(factionsHandler));
-        AddSubCommand(new ClaimChunkSubCommand(factionsHandler));
-        AddSubCommand(new UnClaimChunkCommands(factionsHandler));
-        AddSubCommand(new VersionSubCommand(factionsHandler));
-        //AddSubCommand(new SettingsSubCommand(factionsHandler));
-        AddSubCommand(new JoinPrivateFactionSubCommand(factionsHandler));
-        AddSubCommand(new InviteSubCommand(factionsHandler));
-        //AddSubCommand(new RankSubCommand(factionsHandler));
-        AddSubCommand(new KickSubCommand(factionsHandler));
-        AddSubCommand(new MapSubCommand(factionsHandler));
-        AddSubCommand(new DescriptionSubCommand(factionsHandler));
-        AddSubCommand(new BanSubCommand(factionsHandler));
-        AddSubCommand(new UnbanSubCommand(factionsHandler));
-        //AddSubCommand(new ReloadConfigSubCommand(factionsHandler));
-        AddSubCommand(new ListBannedSubCommand(factionsHandler));
-        AddSubCommand(new RulesSubCommand(factionsHandler));
-        AddSubCommand(new SetRulesSubCommand(factionsHandler));
-        AddSubCommand(new AdminSubCommand(factionsHandler));
-        AddSubCommand(new WhoSubCommand(factionsHandler));
-        //AddSubCommand(new AdminWarningSubCommand(factionsHandler));
+        addSubCommand(new HelpSubCommand(factionsHandler));
+        addSubCommand(new CreateSubCommand(factionsHandler));
+        addSubCommand(new LeaveSubCommand(factionsHandler));
+        addSubCommand(new JoinSubCommand(factionsHandler));
+        addSubCommand(new SaveSubCommand(factionsHandler));
+        addSubCommand(new DeleteSubCommand(factionsHandler));
+        addSubCommand(new ClaimSubCommand(factionsHandler));
+        addSubCommand(new UnclaimSubCommand(factionsHandler));
+        addSubCommand(new VersionSubCommand(factionsHandler));
+        //addSubCommand(new SettingsSubCommand(factionsHandler));
+        addSubCommand(new JoinPrivateFactionSubCommand(factionsHandler));
+        addSubCommand(new InviteSubCommand(factionsHandler));
+        //addSubCommand(new RankSubCommand(factionsHandler));
+        addSubCommand(new KickSubCommand(factionsHandler));
+        addSubCommand(new MapSubCommand(factionsHandler));
+        addSubCommand(new DescriptionSubCommand(factionsHandler));
+        addSubCommand(new BanSubCommand(factionsHandler));
+        addSubCommand(new UnbanSubCommand(factionsHandler));
+        //addSubCommand(new ReloadConfigSubCommand(factionsHandler));
+        addSubCommand(new ListBannedSubCommand(factionsHandler));
+        addSubCommand(new RulesSubCommand(factionsHandler));
+        addSubCommand(new SetRulesSubCommand(factionsHandler));
+        addSubCommand(new AdminSubCommand(factionsHandler));
+        addSubCommand(new WhoSubCommand(factionsHandler));
+        //addSubCommand(new AdminWarningSubCommand(factionsHandler));
 
-        AddSubCommand(new AllySubCommand(factionsHandler));
-        AddSubCommand(new AllyAcceptSubCommand(factionsHandler));
-        AddSubCommand(new AllyRejectSubCommand(factionsHandler));
-        AddSubCommand(new WarSubCommand(factionsHandler));
-        AddSubCommand(new NeutralSubCommand(factionsHandler));
-        AddSubCommand(new PowerSubCommand(factionsHandler));
-        AddSubCommand(new ClaimPower(factionsHandler));
-        AddSubCommand(new TutorialCommand(factionsHandler));
-        AddSubCommand(new InviteAccept(factionsHandler));
-        //AddSubCommand(new ReportSubCommand(factionsHandler));
+        addSubCommand(new AllySubCommand(factionsHandler));
+        addSubCommand(new AllyAcceptSubCommand(factionsHandler));
+        addSubCommand(new AllyRejectSubCommand(factionsHandler));
+        addSubCommand(new WarSubCommand(factionsHandler));
+        addSubCommand(new NeutralSubCommand(factionsHandler));
+        addSubCommand(new PowerSubCommand(factionsHandler));
+        addSubCommand(new LeftPowerSubCommand(factionsHandler));
+        addSubCommand(new TutorialCommand(factionsHandler));
+        addSubCommand(new InviteAcceptSubCommand(factionsHandler));
+        addSubCommand(new MembersSubCommand(factionsHandler));
+        //addSubCommand(new ReportSubCommand(factionsHandler));
 
         this.factionsHandler = factionsHandler;
     }
@@ -61,7 +73,7 @@ public class FactionCommand extends SubCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player) {
-            if (!player.isOp() && !factionsHandler.getWorlds().contains(player.getWorld().getName())) {
+            if (!player.isOp() && !factionsHandler.hasWorld(player.getWorld())) {
                 Language.sendRawMessage("This world is disabled", player);
                 return false;
             }

@@ -1,8 +1,9 @@
 package io.github.toberocat.improvedfactions.listeners;
 
 import io.github.toberocat.improvedfactions.FactionsHandler;
-import io.github.toberocat.improvedfactions.commands.factionCommands.MapSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.MapSubCommand;
 import io.github.toberocat.improvedfactions.language.Language;
+import io.github.toberocat.improvedfactions.utility.ClaimStatus.Status;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -44,10 +45,24 @@ public class OnPlayerMove implements Listener {
         }
 
         var newChunk = playerData.setChunk(chunk);
+        if (newChunk == false){
+            return;
+        }
+
+        var previousChunk = playerData.getPreviousChunk();
+        var previousChunkFaction = factionsHandler.getFaction(previousChunk);
 
         var playerFaction = playerData.getPlayerFaction();
         if (playerData.getAutoClaim() && playerFaction != null) {
-            playerFaction.claimChunk(chunk, null);
+            playerFaction.claimChunk(chunk, result ->
+            {
+                if (result.getClaimStatus() == Status.SUCCESS) {
+                    player.sendMessage("Claimed chunk!");
+                }
+                else{
+                    player.sendMessage("Failed to claim chunk. Tell the admin.");
+                }
+            });
         }
 
         // TODO: implement automap
@@ -58,7 +73,7 @@ public class OnPlayerMove implements Listener {
         // Check if is in wildness
 
         var chunkFaction = factionsHandler.getFaction(chunk);
-        if (newChunk) {
+        if (newChunk && chunkFaction != previousChunkFaction) {
             if (chunkFaction == null) {
                 if (Objects.equals(factionsHandler.getConfig().getString("general.messageType"), "TITLE")) {
                     player.sendTitle(
@@ -73,17 +88,17 @@ public class OnPlayerMove implements Listener {
                                     + factionsHandler.getConfig().getString("general.messageType") + "\n"
                                     + "Valid types = { TITLE, ACTIONBAR }");
                 }
-
             } else {
+                var friendly = chunkFaction == playerFaction || chunkFaction.getRelationManager().isAllies(playerFaction);
                 if (Objects.equals(factionsHandler.getConfig().getString("general.messageType"), "TITLE")) {
-                    player.sendTitle((chunkFaction == playerFaction ? "§a" : "§c")
+                    player.sendTitle((friendly ? "§a" : "§c")
                             + chunkFaction.getDisplayName(),
                             "§f" + (chunkFaction.getMotd() == null ? "" : chunkFaction.getMotd()), 10,
                             20, 10);
                 } else if (Objects.equals(factionsHandler.getConfig().getString("general.messageType"), "ACTIONBAR")) {
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                             TextComponent.fromLegacyText(
-                                    (chunkFaction == playerFaction ? "§a" : "§c")
+                                    (friendly ? "§a" : "§c")
                                             + chunkFaction.getDisplayName()));
                 } else {
                     player

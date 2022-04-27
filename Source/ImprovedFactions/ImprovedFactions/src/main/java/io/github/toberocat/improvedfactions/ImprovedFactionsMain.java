@@ -18,13 +18,6 @@ public final class ImprovedFactionsMain extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		logger = Bukkit.getLogger();
-
-		if (Bukkit.getPluginManager().getPlugin("ProtocolLib") == null) {
-			logger.log(Level.INFO, "§cCan't load improved factions. Need to install protocolLib");
-			Bukkit.getPluginManager().disablePlugin(this);
-			return;
-		}
-
 		logger.log(Level.INFO, Language.format("[Factions] Running " + VERSION + " of Improved Factions (Factions)"));
 
 		// Create extension folder
@@ -32,6 +25,7 @@ public final class ImprovedFactionsMain extends JavaPlugin {
 		extensionsDirectory.mkdir();
 
 		Rank.Init();
+		Language.init(this, new File(getDataFolder().getPath(), "lang"));
 
 		// Data Managers / Config
 		// Language.yml

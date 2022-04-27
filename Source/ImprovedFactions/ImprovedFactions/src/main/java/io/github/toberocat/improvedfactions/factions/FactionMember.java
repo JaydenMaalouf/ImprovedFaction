@@ -4,6 +4,10 @@ import io.github.toberocat.improvedfactions.ranks.Rank;
 
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+
 public class FactionMember {
 
     private UUID uuid;
@@ -55,5 +59,12 @@ public class FactionMember {
             return null;
         }
         return new FactionMember(uuid, rank);
+    }
+
+    public Player getPlayer() {
+        return Bukkit.getPlayer(uuid);
+    }
+    public OfflinePlayer getOfflinePlayer() {
+        return Bukkit.getOfflinePlayer(uuid);
     }
 }

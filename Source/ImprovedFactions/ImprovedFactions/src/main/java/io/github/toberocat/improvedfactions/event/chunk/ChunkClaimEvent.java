@@ -16,7 +16,7 @@ public class ChunkClaimEvent extends Event {
 
     @Override
     public HandlerList getHandlers() {
-        return null;
+        return new HandlerList();
     }
 
     public Chunk getChunk() {

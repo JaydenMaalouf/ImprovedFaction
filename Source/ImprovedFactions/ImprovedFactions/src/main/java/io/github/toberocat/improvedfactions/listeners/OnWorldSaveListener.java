@@ -7,14 +7,14 @@ import org.bukkit.event.world.WorldSaveEvent;
 
 public class OnWorldSaveListener implements Listener {
 
-    private FactionsHandler _factionsHandler;
+    private FactionsHandler factionsHandler;
     public OnWorldSaveListener(FactionsHandler factionsHandler){
-        _factionsHandler = factionsHandler;
+        this.factionsHandler = factionsHandler;
     }
 
     @EventHandler
     public void onWorldSave(WorldSaveEvent event) {
-        _factionsHandler.saveFactions();
+        factionsHandler.saveFactions();
     }
 
 }

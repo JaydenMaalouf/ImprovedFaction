@@ -22,7 +22,7 @@ public class FactionLeaveEvent extends Event implements Cancellable {
 
     @Override
     public HandlerList getHandlers() {
-        return null;
+        return new HandlerList();
     }
 
     @Override

@@ -24,7 +24,7 @@ public class SubCommandSettings {
 
     private FactionsHandler factionsHandler;
 
-    public SubCommandSettings(FactionsHandler _factionsHandler) {
+    public SubCommandSettings(FactionsHandler factionsHandler) {
         factionPermission = null;
         needsAdmin = false;
         needsFaction = NYI.Ignore;
@@ -32,7 +32,7 @@ public class SubCommandSettings {
         eventCall = null;
         isCancellable = true;
         eventParameters = null;
-        factionsHandler = _factionsHandler;
+        this.factionsHandler = factionsHandler;
     }
 
     public Object[] getEventParameters() {

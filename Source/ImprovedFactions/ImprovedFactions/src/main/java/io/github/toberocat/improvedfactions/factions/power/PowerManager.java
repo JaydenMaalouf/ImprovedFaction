@@ -1,25 +1,28 @@
 package io.github.toberocat.improvedfactions.factions.power;
 
+import io.github.toberocat.improvedfactions.BaseManager;
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.factions.FactionMember;
 import io.github.toberocat.improvedfactions.language.Language;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Paths;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 
-public class PowerManager {
+public class PowerManager extends BaseManager {
 
     private int power;
     private int maxPower;
-
-    private Faction faction;
-    private FactionsHandler factionsHandler;
     private boolean isGeneratingPower;
 
     public PowerManager(Faction faction, FactionsHandler factionsHandler) {
-        this.factionsHandler = factionsHandler;
-        this.faction = faction;
+        super("power", faction, factionsHandler);
 
         power = factionsHandler.getConfig().getInt("factions.startClaimPower");
         maxPower = power;
@@ -132,5 +135,22 @@ public class PowerManager {
 
     public void setMaxPower(int maxPower) {
         this.maxPower = maxPower;
+    }
+
+    @Override
+    public void save() throws IOException {
+        var config = new YamlConfiguration();
+        var section = config.createSection("power");
+        section.set("power", power);
+        section.set("maxPower", maxPower);
+        super.internalSave(config);
+    }
+
+    @Override
+    public void load() throws FileNotFoundException, IOException, InvalidConfigurationException {
+        var config = super.internalLoad();
+        var section = config.getConfigurationSection("power");
+        power = section.getInt("power");
+        maxPower = section.getInt("maxPower");
     }
 }

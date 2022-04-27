@@ -25,7 +25,7 @@ public abstract class FactionEvent extends Event implements Cancellable {
 
     @Override
     public HandlerList getHandlers() {
-        return null;
+        return new HandlerList();
     }
 
     public Faction getFaction() {

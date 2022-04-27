@@ -1,7 +1,7 @@
 package io.github.toberocat.improvedfactions.commands;
 
 import io.github.toberocat.improvedfactions.FactionsHandler;
-import io.github.toberocat.improvedfactions.commands.factionCommands.JoinPrivateFactionSubCommand;
+import io.github.toberocat.improvedfactions.commands.faction.JoinPrivateFactionSubCommand;
 import io.github.toberocat.improvedfactions.language.Language;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;

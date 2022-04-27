@@ -2,7 +2,6 @@ package io.github.toberocat.improvedfactions.commands.admin;
 
 import io.github.toberocat.improvedfactions.FactionsHandler;
 import io.github.toberocat.improvedfactions.commands.subCommands.SubCommand;
-import io.github.toberocat.improvedfactions.factions.Faction;
 import io.github.toberocat.improvedfactions.language.Language;
 import io.github.toberocat.improvedfactions.ranks.NewMemberRank;
 import io.github.toberocat.improvedfactions.ranks.Rank;

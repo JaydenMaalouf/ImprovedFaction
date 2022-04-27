@@ -11,20 +11,20 @@ import java.util.List;
 public class AdminSubCommand extends SubCommand {
     public AdminSubCommand(FactionsHandler factionsHandler) {
         super(factionsHandler, "admin", LangMessage.ADMIN_DESCRIPTION);
-        subCommands.add(new AdminDisbandSubCommand(factionsHandler));
-        subCommands.add(new AdminJoinPrivateSubCommand(factionsHandler));
-        subCommands.add(new AdminPowerSubCommand(factionsHandler));
-        subCommands.add(new AdminUnclaimSubCommand(factionsHandler));
-        subCommands.add(new AdminSafezoneSubCommand(factionsHandler));
-        subCommands.add(new AdminOnlinePlayersSubCommand(factionsHandler));
-        //subCommands.add(new AdminViewReportsSubCommand(factionsHandler));
-        subCommands.add(new AdminRenameSubCommand(factionsHandler));
-        subCommands.add(new AdminForceJoinSubCommand(factionsHandler));
-        //subCommands.add(new RemoveReport(factionsHandler));
-        //subCommands.add(new AdminClearReportsSubCommand(factionsHandler));
-        subCommands.add(new AdminFreezeAdminSubCommand(factionsHandler));
-        subCommands.add(new AdminPermanentSubCommand(factionsHandler));
-        subCommands.add(new AdminByPassSubCommand(factionsHandler));
+        addSubCommand(new AdminDisbandSubCommand(factionsHandler));
+        addSubCommand(new AdminJoinPrivateSubCommand(factionsHandler));
+        addSubCommand(new AdminPowerSubCommand(factionsHandler));
+        addSubCommand(new AdminUnclaimSubCommand(factionsHandler));
+        addSubCommand(new AdminSafezoneSubCommand(factionsHandler));
+        addSubCommand(new AdminOnlinePlayersSubCommand(factionsHandler));
+        //addSubCommand(new AdminViewReportsSubCommand(factionsHandler));
+        addSubCommand(new AdminRenameSubCommand(factionsHandler));
+        addSubCommand(new AdminForceJoinSubCommand(factionsHandler));
+        //addSubCommand(new RemoveReport(factionsHandler));
+        //addSubCommand(new AdminClearReportsSubCommand(factionsHandler));
+        addSubCommand(new AdminFreezeAdminSubCommand(factionsHandler));
+        addSubCommand(new AdminPermanentSubCommand(factionsHandler));
+        addSubCommand(new AdminByPassSubCommand(factionsHandler));
     }
 
     @Override

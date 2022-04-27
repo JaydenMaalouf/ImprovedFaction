@@ -5,8 +5,7 @@ api-version: 1.17
 prefix: Factions
 authors: [ Tobero ]
 description: The improved factions. All the factions features.. just better
-depend: [ProtocolLib]
-softdepend: [PlaceholderAPI, Vault]
+softdepend: [Vault]
 website: toberocat.github.io/improvedFactions
 commands:
   f:

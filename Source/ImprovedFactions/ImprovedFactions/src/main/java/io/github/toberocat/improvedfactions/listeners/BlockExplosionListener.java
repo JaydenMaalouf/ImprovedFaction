@@ -1,7 +1,8 @@
 package io.github.toberocat.improvedfactions.listeners;
 
-import io.github.toberocat.improvedfactions.BlockWatcher;
 import io.github.toberocat.improvedfactions.FactionsHandler;
+import io.github.toberocat.improvedfactions.utility.BlockWatcher;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;

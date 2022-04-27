@@ -6,6 +6,7 @@ import io.github.toberocat.improvedfactions.event.faction.FactionJoinEvent;
 import io.github.toberocat.improvedfactions.event.faction.FactionLeaveEvent;
 import io.github.toberocat.improvedfactions.factions.economy.Bank;
 import io.github.toberocat.improvedfactions.factions.power.PowerManager;
+import io.github.toberocat.improvedfactions.factions.rank.RankManager;
 import io.github.toberocat.improvedfactions.factions.relation.RelationManager;
 import io.github.toberocat.improvedfactions.ranks.AllyRank;
 import io.github.toberocat.improvedfactions.ranks.GuestRank;
@@ -22,24 +23,26 @@ import io.github.toberocat.improvedfactions.language.Parseable;
 import io.github.toberocat.improvedfactions.ranks.Rank;
 import io.github.toberocat.improvedfactions.reports.Report;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
-
 
 public class Faction {
     private String rules;
 
     private String displayName;
     private String registryName;
-    private List<FactionMember> members;
 
     private String description = "A improved faction faction";
     private String motd = "";
@@ -47,39 +50,44 @@ public class Faction {
     private PowerManager powerManager;
     private RelationManager relationManager;
     private Bank bankManager;
+    private RankManager rankManager;
 
     private boolean permanent;
     private boolean frozen;
 
     private int claimedChunks;
 
-    private FactionSettings settings;
-
     private UUID owner;
+    private List<FactionMember> members;
     private List<UUID> bannedPlayers;
     private List<String> warnings;
     private List<Report> reports;
     private boolean isOpen;
 
     private FactionsHandler factionsHandler;
+    private Logger logger;
 
-    public Faction(FactionsHandler factionsHandler, String name) {
+    public Faction(String factionName, FactionsHandler factionsHandler, Logger logger) {
         this.factionsHandler = factionsHandler;
+        this.logger = logger;
 
-        this.displayName = name;
-        this.registryName = ChatColor.stripColor(displayName);
+        this.displayName = factionName;
+        this.registryName = ChatColor.stripColor(factionName);
         this.claimedChunks = 0;
 
         // ImprovedFactionsMain.getPlugin().getConfig().getInt("factions.maxMembers")
         // members = new
-        // FactionMember[_factionsHandler.getConfig().getInt("factions.maxMembers")];
+        // FactionMember[factionsHandler.getConfig().getInt("factions.maxMembers")];
 
+        this.members = new ArrayList<>();
         this.bannedPlayers = new ArrayList<>();
-        this.settings = new FactionSettings(factionsHandler);
+        this.warnings = new ArrayList<>();
+        this.reports = new ArrayList<>();
 
-        this.relationManager = new RelationManager(this);
+        this.relationManager = new RelationManager(this, factionsHandler);
         this.powerManager = new PowerManager(this, factionsHandler);
         this.bankManager = new Bank(this, factionsHandler);
+        this.rankManager = new RankManager(this, factionsHandler);
 
         this.permanent = factionsHandler.getConfig().getBoolean("faction.permanent");
         this.frozen = false;
@@ -87,14 +95,6 @@ public class Faction {
 
     public String getDisplayName() {
         return displayName;
-    }
-
-    public FactionRankPermission getPermission(String perm) {
-        return null; //settings.getRanks().get(perm);
-    }
-
-    public FactionSettings getSettings() {
-        return settings;
     }
 
     /**
@@ -121,14 +121,7 @@ public class Faction {
             }
         }
 
-        var perms = getPermission(permission);
-        if (perms == null) {
-            factionsHandler.getConsoleSender().sendMessage("Couldn't get permissions for "
-                    + permission
-                    + ". This should not happen. If it does (It did if you are reading this), please report it to me (The developer). Send me a message over discord or spigotmc. Go on spigotmc to get a link to discord");
-            return false;
-        }
-        return perms.getRanks().contains(member.getRank());
+        return rankManager.getPlayerPermissions(player).contains(permission);
     }
 
     public FactionMember getFactionMember(Player player) {
@@ -162,7 +155,7 @@ public class Faction {
     }
 
     public List<FactionMember> getOnlineMembers() {
-        var members = new ArrayList<FactionMember>();
+        var onlineMembers = new ArrayList<FactionMember>();
         for (var member : getMembers()) {
             if (member == null) {
                 continue;
@@ -170,24 +163,23 @@ public class Faction {
 
             var offlinePlayer = Bukkit.getOfflinePlayer(member.getUuid());
             if (offlinePlayer.isOnline()) {
-                members.add(member);
+                onlineMembers.add(member);
             }
         }
 
-        return members;
+        return onlineMembers;
     }
 
     public List<Player> getAllPlayers() {
-        var members = new ArrayList<Player>();
+        var players = new ArrayList<Player>();
         for (var member : getMembers()) {
             if (member == null) {
                 continue;
             }
 
-            var offlinePlayer = Bukkit.getOfflinePlayer(member.getUuid());
-            members.add(offlinePlayer.getPlayer());
+            players.add(member.getOfflinePlayer().getPlayer());
         }
-        return members;
+        return players;
     }
 
     public boolean isMember(Player player) {
@@ -207,11 +199,7 @@ public class Faction {
     }
 
     public boolean hasMaxMembers() {
-        for (FactionMember member : members) {
-            if (member == null)
-                return false;
-        }
-        return true;
+        return members.size() >= factionsHandler.getConfig().getInt("factions.maxMembers");
     }
 
     public void setRank(Player player, Rank rank) {
@@ -244,23 +232,19 @@ public class Faction {
 
     public boolean joinSilent(UUID uuid, Rank rank) {
         if (frozen) {
+            factionsHandler.getLogger().warning("Faction frozen");
             return false;
         }
         if (bannedPlayers.contains(uuid)) {
+            factionsHandler.getLogger().warning("Faction has banned player");
             return false;
         }
 
-        var result = false;
-        for (int i = 0; i < members.size(); i++) {
-            if (members.get(i) == null) {
-                members.set(i, new FactionMember(uuid, rank));
-                result = true;
-                break;
-            }
-        }
-        if (!result) {
+        if (hasMaxMembers()) {
             return false;
         }
+
+        members.add(new FactionMember(uuid, rank));
 
         factionsHandler.getPlayerData(uuid).setPlayerFaction(this);
         powerManager.addFactionMember();
@@ -270,7 +254,8 @@ public class Faction {
 
     public void claimChunk(Chunk chunk, TCallback<ClaimStatus> callback) {
         if (!powerManager.canClaimChunk()) {
-            callback.Callback(null);
+            logger.warning("Power Manager reckons we can't claim this chunk");
+            callback.Callback(new ClaimStatus(ClaimStatus.Status.NOT_CLAIMED, null));
             return;
         }
 
@@ -278,8 +263,11 @@ public class Faction {
             if (result.getClaimStatus() == ClaimStatus.Status.SUCCESS) {
                 powerManager.claimChunk();
                 claimedChunks++;
+                logger.warning("Somehow we actually claimed it");
             }
-            callback.Callback(result);
+            if (callback != null) {
+                callback.Callback(result);
+            }
         });
     }
 
@@ -289,7 +277,9 @@ public class Faction {
                 powerManager.unclaimChunk();
                 claimedChunks--;
             }
-            callback.Callback(result);
+            if (callback != null) {
+                callback.Callback(result);
+            }
         });
     }
 
@@ -362,10 +352,12 @@ public class Faction {
     }
 
     private void internalClaimChunk(Chunk chunk, TCallback<ClaimStatus> callback) {
+        logger.warning("internal claim chunk");
         var container = chunk.getPersistentDataContainer();
 
         var chunkFaction = factionsHandler.getFaction(chunk);
-        if (factionsHandler.getConfig().getBoolean("general.connectedChunks")) {
+        if (this.claimedChunks > 0 && factionsHandler.getConfig().getBoolean("general.connectedChunks")) {
+            logger.warning("needs connection");
             var connected = false;
             var neighbouringChunks = ChunkUtils.GetNeighbourChunks(chunk);
             for (var neighbourChunk : neighbouringChunks) {
@@ -376,18 +368,22 @@ public class Faction {
             }
 
             if (connected == false) {
+                logger.warning("not connected");
                 callback.Callback(new ClaimStatus(ClaimStatus.Status.NEED_CONNECTION, this));
                 return;
             }
         }
 
         if (!getPowerManager().canClaimChunk()) {
+            logger.warning("oiwer manager thinks it cant claim");
             callback.Callback(new ClaimStatus(ClaimStatus.Status.NOT_CLAIMED, chunkFaction));
             return;
         }
 
-        if (chunkFaction != this) {
+        if (chunkFaction != null && chunkFaction != this) {
+            logger.warning("someone owns this chunk bruh");
             if (!canOverclaim(chunk)) {
+                logger.warning("cant overclaim");
                 callback.Callback(new ClaimStatus(ClaimStatus.Status.ALREADY_CLAIMED, chunkFaction));
                 return;
             }
@@ -399,6 +395,7 @@ public class Faction {
             }
         }
 
+        logger.warning("we claimin");
         getPowerManager().claimChunk();
         container.set(FactionsHandler.FACTION_CLAIMED_KEY, PersistentDataType.STRING, getRegistryName());
         Bukkit.getPluginManager().callEvent(new ChunkClaimEvent(chunk, this));
@@ -550,6 +547,7 @@ public class Faction {
 
     public void setOwner(UUID owner) {
         this.owner = owner;
+        joinSilent(owner, Rank.fromString(OwnerRank.registry));
     }
 
     public Bank getBank() {
@@ -682,5 +680,27 @@ public class Faction {
 
     public void setOpen(boolean open) {
         this.isOpen = open;
+    }
+
+    public void save() {
+        try {
+            rankManager.save();
+            powerManager.save();
+            relationManager.save();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void load() {
+        try {
+            rankManager.load();
+            powerManager.load();
+            relationManager.load();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        } catch (InvalidConfigurationException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
